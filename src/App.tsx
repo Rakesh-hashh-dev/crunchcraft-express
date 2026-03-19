@@ -16,6 +16,7 @@ import Checkout from "./pages/Checkout";
 import Subscription from "./pages/Subscription";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
+import { Analytics } from "@vercel/analytics/react";
 
 const queryClient = new QueryClient();
 
@@ -55,6 +56,7 @@ const App = () => (
           </CartProvider>
         </AuthProvider>
       </BrowserRouter>
+      <Analytics />
     </TooltipProvider>
   </QueryClientProvider>
 );
