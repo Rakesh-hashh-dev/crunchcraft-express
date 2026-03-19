@@ -16,6 +16,16 @@ import Checkout from "./pages/Checkout";
 import Subscription from "./pages/Subscription";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
+import ChatBot from "@/components/ChatBot";
+
+function App() {
+  return (
+    <>
+      {/* ...your existing app... */}
+      <ChatBot />
+    </>
+  );
+}
 
 const queryClient = new QueryClient();
 
