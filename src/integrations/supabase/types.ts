@@ -14,7 +14,149 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      cart_items: {
+        Row: {
+          created_at: string
+          flavour: string
+          id: string
+          is_subscription: boolean
+          quantity: number
+          size: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          flavour: string
+          id?: string
+          is_subscription?: boolean
+          quantity?: number
+          size: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          flavour?: string
+          id?: string
+          is_subscription?: boolean
+          quantity?: number
+          size?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      order_items: {
+        Row: {
+          created_at: string
+          flavour: string
+          id: string
+          order_id: string
+          quantity: number
+          size: string
+          unit_price: number
+        }
+        Insert: {
+          created_at?: string
+          flavour: string
+          id?: string
+          order_id: string
+          quantity: number
+          size: string
+          unit_price: number
+        }
+        Update: {
+          created_at?: string
+          flavour?: string
+          id?: string
+          order_id?: string
+          quantity?: number
+          size?: string
+          unit_price?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "order_items_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      orders: {
+        Row: {
+          created_at: string
+          id: string
+          payment_method: string
+          shipping_address: string
+          shipping_city: string
+          shipping_name: string
+          shipping_phone: string | null
+          shipping_pin: string
+          status: string
+          total_amount: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          payment_method: string
+          shipping_address: string
+          shipping_city: string
+          shipping_name: string
+          shipping_phone?: string | null
+          shipping_pin: string
+          status?: string
+          total_amount: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          payment_method?: string
+          shipping_address?: string
+          shipping_city?: string
+          shipping_name?: string
+          shipping_phone?: string | null
+          shipping_pin?: string
+          status?: string
+          total_amount?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          display_name: string | null
+          id: string
+          phone: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          display_name?: string | null
+          id?: string
+          phone?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          display_name?: string | null
+          id?: string
+          phone?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
