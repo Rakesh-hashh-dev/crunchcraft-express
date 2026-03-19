@@ -166,7 +166,7 @@ export default function ChatBot() {
         }
 
         .crunchbot-header {
-          background: linear-gradient(135deg, #FF6B2B 0%, #FF3D00 100%);
+          background: linear-gradient(135deg, #FF6B2B 0%, hsl(var(--primary)));
           padding: 18px 20px 16px;
           display: flex;
           align-items: center;
