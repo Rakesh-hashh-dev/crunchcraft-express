@@ -18,14 +18,16 @@ import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 import ChatBot from "@/components/ChatBot";
 
-function App() {
-  return (
-    <>
-      {/* ...your existing app... */}
-      <ChatBot />
-    </>
-  );
-}
+const App = () => (   // ← keep only ONE of these
+  <QueryClientProvider client={queryClient}>
+    <TooltipProvider>
+      {/* ...your existing stuff... */}
+      <ChatBot />     {/* ← just add this line inside */}
+    </TooltipProvider>
+  </QueryClientProvider>
+);
+
+export default App;
 
 const queryClient = new QueryClient();
 
