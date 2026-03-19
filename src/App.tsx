@@ -19,8 +19,6 @@ import NotFound from "./pages/NotFound";
 import ChatBot from "@/components/ChatBot";
 
 
-export default App;
-
 const queryClient = new QueryClient();
 
 const AnimatedRoutes = () => {
