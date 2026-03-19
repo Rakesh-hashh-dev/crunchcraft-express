@@ -18,7 +18,6 @@ import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 import ChatBot from "@/components/ChatBot";
 
-
 const queryClient = new QueryClient();
 
 const AnimatedRoutes = () => {
@@ -54,6 +53,7 @@ const App = () => (
               </main>
               <Footer />
             </div>
+            <ChatBot />
           </CartProvider>
         </AuthProvider>
       </BrowserRouter>
