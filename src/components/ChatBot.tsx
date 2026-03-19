@@ -19,7 +19,7 @@ export default function ChatBot() {
     {
       role: "assistant",
       content:
-        "Hey there! 👋 I'm CrunchBot, your CrunchCraft Express assistant. Ask me anything about our menu, your order, or anything else I can help with! 🍔",
+        "Hey there! 👋 I'm CrunchBot, your CrunchCraft assistant. Ask me anything about our menu, your order, or anything else I can help with! 🍔",
     },
   ]);
   const [input, setInput] = useState("");
@@ -103,7 +103,7 @@ export default function ChatBot() {
           width: 60px;
           height: 60px;
           border-radius: 50%;
-          background: linear-gradient(135deg, #FF6B2B 0%, #FF3D00 100%);
+          background: linear-gradient(135deg, #FF6B2B 0%, hsl(var(--primary)));
           border: none;
           cursor: pointer;
           box-shadow: 0 8px 32px rgba(255, 61, 0, 0.45), 0 2px 8px rgba(0,0,0,0.2);
