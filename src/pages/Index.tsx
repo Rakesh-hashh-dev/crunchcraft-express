@@ -1,7 +1,5 @@
-import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import TrustBadges from "@/components/TrustBadges";
 import ProductCard from "@/components/ProductCard";
 import { flavours } from "@/lib/products";
@@ -11,13 +9,11 @@ import { PageTransition, FadeInSection, StaggerContainer, StaggerItem } from "@/
 import { motion } from "framer-motion";
 
 const Index = () => {
-  const [email, setEmail] = useState("");
-
   return (
     <PageTransition>
       <div className="flex flex-col">
         {/* Hero */}
-        <section className="relative min-h-[80vh] flex items-center overflow-hidden">
+        <section className="relative min-h-[70vh] md:min-h-[80vh] flex items-center overflow-hidden">
           <div className="absolute inset-0">
             <motion.img
               src={heroImg}
@@ -27,9 +23,9 @@ const Index = () => {
               animate={{ scale: 1 }}
               transition={{ duration: 1.2, ease: "easeOut" }}
             />
-            <div className="absolute inset-0 bg-gradient-to-r from-foreground/80 via-foreground/50 to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-r from-foreground/85 via-foreground/60 to-transparent" />
           </div>
-          <div className="container relative z-10 py-20">
+          <div className="container relative z-10 py-16 md:py-20">
             <motion.div
               className="max-w-lg"
               initial={{ opacity: 0, y: 40 }}
@@ -39,25 +35,25 @@ const Index = () => {
               <span className="inline-flex items-center gap-2 rounded-full bg-secondary/90 px-4 py-1.5 text-xs font-bold text-secondary-foreground mb-6">
                 <Sparkles className="h-3.5 w-3.5" /> New: Dark Roast Chaat Masala
               </span>
-              <h1 className="text-4xl md:text-6xl leading-tight text-background">
+              <h1 className="text-3xl sm:text-4xl md:text-6xl leading-tight text-background">
                 Snack Smart.<br />Crunch Bold.
               </h1>
-              <p className="mt-4 text-lg text-background/80 font-body">
+              <p className="mt-4 text-base md:text-lg text-background/80 font-body">
                 Millet puffs that pack flavour without the guilt. Baked, never fried. 100% compostable packaging.
               </p>
               <motion.div
-                className="mt-8 flex flex-wrap gap-4"
+                className="mt-8 flex flex-col sm:flex-row gap-3 sm:gap-4"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.8 }}
               >
-                <Link to="/shop">
-                  <Button size="lg" className="bg-secondary text-secondary-foreground hover:bg-secondary/90 font-heading text-sm">
+                <Link to="/shop" className="w-full sm:w-auto">
+                  <Button size="lg" className="w-full sm:w-auto bg-secondary text-secondary-foreground hover:bg-secondary/90 hover:shadow-lg transition-all duration-200 font-heading text-sm">
                     Shop Now <ArrowRight className="ml-2 h-4 w-4" />
                   </Button>
                 </Link>
-                <Link to="/our-story">
-                  <Button size="lg" variant="outline" className="border-background/40 text-background hover:bg-background/10">
+                <Link to="/our-story" className="w-full sm:w-auto">
+                  <Button size="lg" variant="outline" className="w-full sm:w-auto border-background/40 text-background hover:bg-background/10 transition-all duration-200">
                     Our Story
                   </Button>
                 </Link>
@@ -70,10 +66,10 @@ const Index = () => {
 
         {/* Product Carousel */}
         <FadeInSection>
-          <section className="container py-16 md:py-24">
-            <h2 className="text-3xl text-center mb-2">MilLet's Pop</h2>
+          <section className="container py-12 md:py-24">
+            <h2 className="text-2xl md:text-3xl text-center mb-2">MilLet's Pop</h2>
             <p className="text-center text-muted-foreground font-body mb-10">Choose your crunch</p>
-            <StaggerContainer className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            <StaggerContainer className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
               {flavours.map((f) => (
                 <StaggerItem key={f.name}>
                   <ProductCard name={f.name} image={f.image} price={20} tag="Bestseller" />
@@ -85,10 +81,10 @@ const Index = () => {
 
         {/* Why CrunchCraft */}
         <FadeInSection>
-          <section className="bg-primary text-primary-foreground py-16 md:py-24">
+          <section className="bg-primary text-primary-foreground py-12 md:py-24">
             <div className="container text-center max-w-2xl">
-              <h2 className="text-3xl mb-6">Why CrunchCraft?</h2>
-              <div className="grid gap-8 sm:grid-cols-3 font-body">
+              <h2 className="text-2xl md:text-3xl mb-6">Why CrunchCraft?</h2>
+              <div className="grid gap-8 grid-cols-1 sm:grid-cols-3 font-body">
                 {[
                   { val: "118", label: "kcal per 30g serving" },
                   { val: "4.2g", label: "Protein per serving" },
@@ -101,18 +97,6 @@ const Index = () => {
                 ))}
               </div>
             </div>
-          </section>
-        </FadeInSection>
-
-        {/* Email Signup */}
-        <FadeInSection>
-          <section className="container py-16 md:py-24 max-w-xl text-center">
-            <h2 className="text-2xl mb-2">Join the Crunch Club</h2>
-            <p className="font-body text-muted-foreground mb-6">Get 10% off your first order + snack drops straight to your inbox.</p>
-            <form onSubmit={(e) => e.preventDefault()} className="flex gap-3">
-              <Input placeholder="your@email.com" type="email" value={email} onChange={(e) => setEmail(e.target.value)} className="flex-1 bg-card" />
-              <Button className="bg-secondary text-secondary-foreground hover:bg-secondary/90">Subscribe</Button>
-            </form>
           </section>
         </FadeInSection>
       </div>
