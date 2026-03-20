@@ -88,8 +88,8 @@ const Footer = () => {
           <div>
             <h4 className="text-sm font-bold mb-3 font-heading uppercase tracking-wider">Support</h4>
             <div className="flex flex-col gap-2 text-sm opacity-80 font-body">
-              <a href="mailto:hello@crunchcraft.in" className="hover:opacity-100 transition-opacity">hello@crunchcraft.in</a>
-              <a href="tel:+919876543210" className="hover:opacity-100 transition-opacity">+91 98765 43210</a>
+              <a href="mailto:hello@crunchcraft.in" className="hover:opacity-100 transition-opacity">rraku04@gmail.com</a>
+              <a href="tel:+919876543210" className="hover:opacity-100 transition-opacity">+91 73775 51040</a>
               <span className="mt-2 text-xs opacity-60">FSSAI Lic. No. 10024021000123</span>
             </div>
           </div>
