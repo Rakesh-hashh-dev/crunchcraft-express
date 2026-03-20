@@ -161,9 +161,9 @@ const ChatWidget = () => {
                         : "bg-muted text-foreground rounded-bl-md"
                     }`}
                   >
-                    <ReactMarkdown className="prose prose-sm max-w-none [&>p]:m-0 [&>ul]:m-0 [&>ol]:m-0">
-                      {msg.content}
-                    </ReactMarkdown>
+                    <div className="prose prose-sm max-w-none [&>p]:m-0 [&>ul]:m-0 [&>ol]:m-0">
+                      <ReactMarkdown>{msg.content}</ReactMarkdown>
+                    </div>
                   </div>
                 </motion.div>
               ))}
