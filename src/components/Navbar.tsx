@@ -80,15 +80,20 @@ const Navbar = () => {
           </Link>
 
           {user ? (
-            <Button
-              size="icon"
-              variant="ghost"
-              onClick={() => signOut()}
-              title="Sign Out"
-              className="hover:bg-destructive/10 hover:text-destructive transition-colors duration-200"
-            >
-              <LogOut className="h-5 w-5" />
-            </Button>
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-body text-foreground truncate max-w-[120px]">
+                {displayName || user.email?.split("@")[0]}
+              </span>
+              <Button
+                size="icon"
+                variant="ghost"
+                onClick={() => signOut()}
+                title="Sign Out"
+                className="hover:bg-destructive/10 hover:text-destructive transition-colors duration-200"
+              >
+                <LogOut className="h-5 w-5" />
+              </Button>
+            </div>
           ) : (
             <Link to="/auth">
               <Button size="sm" variant="outline" className="hover:bg-primary hover:text-primary-foreground transition-all duration-200">
