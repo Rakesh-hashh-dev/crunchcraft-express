@@ -197,12 +197,30 @@ const Navbar = () => {
                 Cart ({itemCount})
               </Link>
               {user ? (
-                <button
-                  onClick={() => { signOut(); setOpen(false); }}
-                  className="font-body text-sm py-2 px-3 rounded-md text-foreground hover:bg-destructive/10 hover:text-destructive text-left transition-colors"
-                >
-                  Sign Out
-                </button>
+                <>
+                  <Link
+                    to="/auth?tab=profile"
+                    onClick={() => setOpen(false)}
+                    className="font-body text-sm py-2 px-3 rounded-md text-foreground hover:bg-muted transition-colors flex items-center gap-2"
+                  >
+                    <Settings className="h-4 w-4" /> Edit Profile
+                  </Link>
+                  {isAdmin && (
+                    <Link
+                      to="/admin"
+                      onClick={() => setOpen(false)}
+                      className="font-body text-sm py-2 px-3 rounded-md text-foreground hover:bg-muted transition-colors flex items-center gap-2"
+                    >
+                      <Shield className="h-4 w-4" /> Admin Dashboard
+                    </Link>
+                  )}
+                  <button
+                    onClick={() => { signOut(); setOpen(false); }}
+                    className="font-body text-sm py-2 px-3 rounded-md text-destructive hover:bg-destructive/10 text-left transition-colors flex items-center gap-2"
+                  >
+                    <LogOut className="h-4 w-4" /> Sign Out
+                  </button>
+                </>
               ) : (
                 <Link
                   to="/auth"
