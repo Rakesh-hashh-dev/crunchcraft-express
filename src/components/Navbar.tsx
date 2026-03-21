@@ -16,9 +16,20 @@ const links = [
 
 const Navbar = () => {
   const [open, setOpen] = useState(false);
+  const [displayName, setDisplayName] = useState<string | null>(null);
   const { pathname } = useLocation();
   const { user, signOut } = useAuth();
   const { itemCount } = useCart();
+
+  useEffect(() => {
+    if (!user) { setDisplayName(null); return; }
+    supabase
+      .from("profiles")
+      .select("display_name")
+      .eq("user_id", user.id)
+      .maybeSingle()
+      .then(({ data }) => setDisplayName(data?.display_name || null));
+  }, [user]);
 
   return (
     <nav className="sticky top-0 z-50 border-b bg-background/95 backdrop-blur-md supports-[backdrop-filter]:bg-background/80 shadow-sm">
