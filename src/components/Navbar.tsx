@@ -17,9 +17,12 @@ const links = [
 
 const Navbar = () => {
   const [open, setOpen] = useState(false);
+  const [profileOpen, setProfileOpen] = useState(false);
   const [displayName, setDisplayName] = useState<string | null>(null);
+  const profileRef = useRef<HTMLDivElement>(null);
   const { pathname } = useLocation();
   const { user, signOut } = useAuth();
+  const { isAdmin } = useAdmin();
   const { itemCount } = useCart();
 
   useEffect(() => {
