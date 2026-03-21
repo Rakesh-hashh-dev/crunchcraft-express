@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Menu, X, ShoppingBag, User, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { useCart } from "@/hooks/useCart";
+import { supabase } from "@/integrations/supabase/client";
 import { motion, AnimatePresence } from "framer-motion";
 
 const links = [
@@ -15,9 +16,20 @@ const links = [
 
 const Navbar = () => {
   const [open, setOpen] = useState(false);
+  const [displayName, setDisplayName] = useState<string | null>(null);
   const { pathname } = useLocation();
   const { user, signOut } = useAuth();
   const { itemCount } = useCart();
+
+  useEffect(() => {
+    if (!user) { setDisplayName(null); return; }
+    supabase
+      .from("profiles")
+      .select("display_name")
+      .eq("user_id", user.id)
+      .maybeSingle()
+      .then(({ data }) => setDisplayName(data?.display_name || null));
+  }, [user]);
 
   return (
     <nav className="sticky top-0 z-50 border-b bg-background/95 backdrop-blur-md supports-[backdrop-filter]:bg-background/80 shadow-sm">
@@ -68,15 +80,20 @@ const Navbar = () => {
           </Link>
 
           {user ? (
-            <Button
-              size="icon"
-              variant="ghost"
-              onClick={() => signOut()}
-              title="Sign Out"
-              className="hover:bg-destructive/10 hover:text-destructive transition-colors duration-200"
-            >
-              <LogOut className="h-5 w-5" />
-            </Button>
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-body text-foreground truncate max-w-[120px]">
+                {displayName || user.email?.split("@")[0]}
+              </span>
+              <Button
+                size="icon"
+                variant="ghost"
+                onClick={() => signOut()}
+                title="Sign Out"
+                className="hover:bg-destructive/10 hover:text-destructive transition-colors duration-200"
+              >
+                <LogOut className="h-5 w-5" />
+              </Button>
+            </div>
           ) : (
             <Link to="/auth">
               <Button size="sm" variant="outline" className="hover:bg-primary hover:text-primary-foreground transition-all duration-200">
