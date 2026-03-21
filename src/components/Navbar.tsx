@@ -1,8 +1,9 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Menu, X, ShoppingBag, User, LogOut } from "lucide-react";
+import { Menu, X, ShoppingBag, User, LogOut, Settings, Shield, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
+import { useAdmin } from "@/hooks/useAdmin";
 import { useCart } from "@/hooks/useCart";
 import { supabase } from "@/integrations/supabase/client";
 import { motion, AnimatePresence } from "framer-motion";
@@ -16,9 +17,12 @@ const links = [
 
 const Navbar = () => {
   const [open, setOpen] = useState(false);
+  const [profileOpen, setProfileOpen] = useState(false);
   const [displayName, setDisplayName] = useState<string | null>(null);
+  const profileRef = useRef<HTMLDivElement>(null);
   const { pathname } = useLocation();
   const { user, signOut } = useAuth();
+  const { isAdmin } = useAdmin();
   const { itemCount } = useCart();
 
   useEffect(() => {
@@ -30,6 +34,17 @@ const Navbar = () => {
       .maybeSingle()
       .then(({ data }) => setDisplayName(data?.display_name || null));
   }, [user]);
+
+  // Close profile dropdown on outside click
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (profileRef.current && !profileRef.current.contains(e.target as Node)) {
+        setProfileOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
 
   return (
     <nav className="sticky top-0 z-50 border-b bg-background/95 backdrop-blur-md supports-[backdrop-filter]:bg-background/80 shadow-sm">
@@ -80,19 +95,51 @@ const Navbar = () => {
           </Link>
 
           {user ? (
-            <div className="flex items-center gap-2">
-              <span className="text-sm font-body text-foreground truncate max-w-[120px]">
-                {displayName || user.email?.split("@")[0]}
-              </span>
-              <Button
-                size="icon"
-                variant="ghost"
-                onClick={() => signOut()}
-                title="Sign Out"
-                className="hover:bg-destructive/10 hover:text-destructive transition-colors duration-200"
+            <div className="relative" ref={profileRef}>
+              <button
+                onClick={() => setProfileOpen(!profileOpen)}
+                className="flex items-center gap-1.5 rounded-full bg-primary/10 px-3 py-1.5 text-sm font-body text-foreground hover:bg-primary/20 transition-colors duration-200"
               >
-                <LogOut className="h-5 w-5" />
-              </Button>
+                <div className="flex h-6 w-6 items-center justify-center rounded-full bg-primary text-primary-foreground text-xs font-bold">
+                  {(displayName || user.email || "U")[0].toUpperCase()}
+                </div>
+                <span className="truncate max-w-[100px]">{displayName || user.email?.split("@")[0]}</span>
+                <ChevronDown className={`h-3.5 w-3.5 transition-transform duration-200 ${profileOpen ? "rotate-180" : ""}`} />
+              </button>
+              <AnimatePresence>
+                {profileOpen && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -8, scale: 0.95 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: -8, scale: 0.95 }}
+                    transition={{ duration: 0.15 }}
+                    className="absolute right-0 mt-2 w-48 rounded-xl border bg-card shadow-lg overflow-hidden z-50"
+                  >
+                    <Link
+                      to="/auth?tab=profile"
+                      onClick={() => setProfileOpen(false)}
+                      className="flex items-center gap-2 px-4 py-2.5 text-sm font-body text-foreground hover:bg-muted transition-colors"
+                    >
+                      <Settings className="h-4 w-4 text-muted-foreground" /> Edit Profile
+                    </Link>
+                    {isAdmin && (
+                      <Link
+                        to="/admin"
+                        onClick={() => setProfileOpen(false)}
+                        className="flex items-center gap-2 px-4 py-2.5 text-sm font-body text-foreground hover:bg-muted transition-colors"
+                      >
+                        <Shield className="h-4 w-4 text-muted-foreground" /> Admin Dashboard
+                      </Link>
+                    )}
+                    <button
+                      onClick={() => { signOut(); setProfileOpen(false); }}
+                      className="flex w-full items-center gap-2 px-4 py-2.5 text-sm font-body text-destructive hover:bg-destructive/10 transition-colors"
+                    >
+                      <LogOut className="h-4 w-4" /> Sign Out
+                    </button>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
           ) : (
             <Link to="/auth">
@@ -161,12 +208,30 @@ const Navbar = () => {
                 Cart ({itemCount})
               </Link>
               {user ? (
-                <button
-                  onClick={() => { signOut(); setOpen(false); }}
-                  className="font-body text-sm py-2 px-3 rounded-md text-foreground hover:bg-destructive/10 hover:text-destructive text-left transition-colors"
-                >
-                  Sign Out
-                </button>
+                <>
+                  <Link
+                    to="/auth?tab=profile"
+                    onClick={() => setOpen(false)}
+                    className="font-body text-sm py-2 px-3 rounded-md text-foreground hover:bg-muted transition-colors flex items-center gap-2"
+                  >
+                    <Settings className="h-4 w-4" /> Edit Profile
+                  </Link>
+                  {isAdmin && (
+                    <Link
+                      to="/admin"
+                      onClick={() => setOpen(false)}
+                      className="font-body text-sm py-2 px-3 rounded-md text-foreground hover:bg-muted transition-colors flex items-center gap-2"
+                    >
+                      <Shield className="h-4 w-4" /> Admin Dashboard
+                    </Link>
+                  )}
+                  <button
+                    onClick={() => { signOut(); setOpen(false); }}
+                    className="font-body text-sm py-2 px-3 rounded-md text-destructive hover:bg-destructive/10 text-left transition-colors flex items-center gap-2"
+                  >
+                    <LogOut className="h-4 w-4" /> Sign Out
+                  </button>
+                </>
               ) : (
                 <Link
                   to="/auth"
