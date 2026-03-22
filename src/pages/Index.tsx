@@ -80,7 +80,7 @@ const Index = () => {
                 </Link>
                 <Link to="/our-story" className="w-full sm:w-auto">
                   <motion.div whileHover={{ scale: 1.05, y: -2 }} whileTap={{ scale: 0.97 }} transition={{ type: "spring", stiffness: 400, damping: 17 }}>
-                    <Button size="lg" variant="outline" className="w-full sm:w-auto border-background/40 text-background hover:bg-background/10 transition-all duration-300">
+                    <Button size="lg" className="w-full sm:w-auto bg-secondary text-secondary-foreground hover:bg-secondary/90 hover:shadow-xl transition-shadow duration-300 font-heading text-sm">
                       Our Story
                     </Button>
                   </motion.div>
