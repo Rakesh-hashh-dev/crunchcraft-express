@@ -49,6 +49,8 @@ const CHART_COLORS = [
   "#ec4899",
 ];
 
+const ORDER_STATUSES = ["pending", "confirmed", "processing", "shipped", "delivered", "cancelled"];
+
 const AdminDashboard = () => {
   const { user } = useAuth();
   const { isAdmin, loading: adminLoading } = useAdmin();
@@ -58,6 +60,22 @@ const AdminDashboard = () => {
   const [profiles, setProfiles] = useState<Profile[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(true);
+  const [updatingOrderId, setUpdatingOrderId] = useState<string | null>(null);
+
+  const handleStatusChange = useCallback(async (orderId: string, newStatus: string) => {
+    setUpdatingOrderId(orderId);
+    const { error } = await supabase
+      .from("orders")
+      .update({ status: newStatus })
+      .eq("id", orderId);
+    if (error) {
+      toast.error("Failed to update status");
+    } else {
+      setOrders((prev) => prev.map((o) => o.id === orderId ? { ...o, status: newStatus } : o));
+      toast.success(`Order updated to "${newStatus}"`);
+    }
+    setUpdatingOrderId(null);
+  }, []);
 
   useEffect(() => {
     if (!adminLoading && !isAdmin) {
