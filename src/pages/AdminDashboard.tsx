@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -7,6 +7,9 @@ import { demoUsers, demoOrders, demoRevenue } from "@/lib/demoUsers";
 import { PageTransition, FadeInSection } from "@/components/AnimationWrappers";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue
+} from "@/components/ui/select";
 import {
   ShoppingBag, Users, BarChart3, Package, ArrowLeft, Search,
   TrendingUp, IndianRupee, Clock
@@ -47,6 +50,8 @@ const CHART_COLORS = [
   "#ec4899",
 ];
 
+const ORDER_STATUSES = ["pending", "confirmed", "processing", "shipped", "delivered", "cancelled"];
+
 const AdminDashboard = () => {
   const { user } = useAuth();
   const { isAdmin, loading: adminLoading } = useAdmin();
@@ -56,6 +61,22 @@ const AdminDashboard = () => {
   const [profiles, setProfiles] = useState<Profile[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(true);
+  const [updatingOrderId, setUpdatingOrderId] = useState<string | null>(null);
+
+  const handleStatusChange = useCallback(async (orderId: string, newStatus: string) => {
+    setUpdatingOrderId(orderId);
+    const { error } = await supabase
+      .from("orders")
+      .update({ status: newStatus })
+      .eq("id", orderId);
+    if (error) {
+      toast.error("Failed to update status");
+    } else {
+      setOrders((prev) => prev.map((o) => o.id === orderId ? { ...o, status: newStatus } : o));
+      toast.success(`Order updated to "${newStatus}"`);
+    }
+    setUpdatingOrderId(null);
+  }, []);
 
   useEffect(() => {
     if (!adminLoading && !isAdmin) {
@@ -419,9 +440,20 @@ const AdminDashboard = () => {
                         <td className="p-4 capitalize">{o.payment_method}</td>
                         <td className="p-4 font-bold">₹{o.total_amount}</td>
                         <td className="p-4">
-                          <span className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-bold ${
-                            o.status === "pending" ? "bg-secondary/20 text-secondary" : "bg-primary/20 text-primary"
-                          }`}>{o.status}</span>
+                          <Select
+                            value={o.status}
+                            onValueChange={(val) => handleStatusChange(o.id, val)}
+                            disabled={updatingOrderId === o.id}
+                          >
+                            <SelectTrigger className="w-[130px] h-8 text-xs">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {ORDER_STATUSES.map((s) => (
+                                <SelectItem key={s} value={s} className="text-xs capitalize">{s}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
                         </td>
                         <td className="p-4 text-muted-foreground">{new Date(o.created_at).toLocaleDateString()}</td>
                       </tr>
