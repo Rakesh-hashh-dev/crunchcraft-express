@@ -439,9 +439,20 @@ const AdminDashboard = () => {
                         <td className="p-4 capitalize">{o.payment_method}</td>
                         <td className="p-4 font-bold">₹{o.total_amount}</td>
                         <td className="p-4">
-                          <span className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-bold ${
-                            o.status === "pending" ? "bg-secondary/20 text-secondary" : "bg-primary/20 text-primary"
-                          }`}>{o.status}</span>
+                          <Select
+                            value={o.status}
+                            onValueChange={(val) => handleStatusChange(o.id, val)}
+                            disabled={updatingOrderId === o.id}
+                          >
+                            <SelectTrigger className="w-[130px] h-8 text-xs">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {ORDER_STATUSES.map((s) => (
+                                <SelectItem key={s} value={s} className="text-xs capitalize">{s}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
                         </td>
                         <td className="p-4 text-muted-foreground">{new Date(o.created_at).toLocaleDateString()}</td>
                       </tr>
