@@ -19,46 +19,74 @@ const Index = () => {
               src={heroImg}
               alt="CrunchCraft millet puffs"
               className="h-full w-full object-cover"
-              initial={{ scale: 1.1 }}
-              animate={{ scale: 1 }}
-              transition={{ duration: 1.2, ease: "easeOut" }}
+              initial={{ scale: 1.15, filter: "blur(4px)" }}
+              animate={{ scale: 1, filter: "blur(0px)" }}
+              transition={{ duration: 1.8, ease: [0.25, 0.46, 0.45, 0.94] }}
             />
-            <div className="absolute inset-0 bg-gradient-to-r from-foreground/85 via-foreground/60 to-transparent" />
+            <motion.div
+              className="absolute inset-0 bg-gradient-to-r from-foreground/85 via-foreground/60 to-transparent"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 1.2, delay: 0.3 }}
+            />
           </div>
           <div className="container relative z-10 py-16 md:py-20">
-            <motion.div
-              className="max-w-lg"
-              initial={{ opacity: 0, y: 40 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.7, delay: 0.3 }}
-            >
-              <span className="inline-flex items-center gap-2 rounded-full bg-secondary/90 px-4 py-1.5 text-xs font-bold text-secondary-foreground mb-6">
-                <Sparkles className="h-3.5 w-3.5" /> New: Dark Roast Chaat Masala
-              </span>
-              <h1 className="text-3xl sm:text-4xl md:text-6xl leading-tight text-background">
+            <div className="max-w-lg">
+              <motion.span
+                className="inline-flex items-center gap-2 rounded-full bg-secondary/90 px-4 py-1.5 text-xs font-bold text-secondary-foreground mb-6"
+                initial={{ opacity: 0, x: -30, scale: 0.9 }}
+                animate={{ opacity: 1, x: 0, scale: 1 }}
+                transition={{ duration: 0.6, delay: 0.5, ease: "easeOut" }}
+              >
+                <motion.span
+                  animate={{ rotate: [0, 15, -15, 0] }}
+                  transition={{ duration: 2, repeat: Infinity, repeatDelay: 3 }}
+                >
+                  <Sparkles className="h-3.5 w-3.5" />
+                </motion.span>
+                New: Dark Roast Chaat Masala
+              </motion.span>
+
+              <motion.h1
+                className="text-3xl sm:text-4xl md:text-6xl leading-tight text-background"
+                initial={{ opacity: 0, y: 50, clipPath: "inset(0 0 100% 0)" }}
+                animate={{ opacity: 1, y: 0, clipPath: "inset(0 0 0% 0)" }}
+                transition={{ duration: 0.8, delay: 0.6, ease: [0.16, 1, 0.3, 1] }}
+              >
                 Snack Smart.<br />Crunch Bold.
-              </h1>
-              <p className="mt-4 text-base md:text-lg text-background/80 font-body">
+              </motion.h1>
+
+              <motion.p
+                className="mt-4 text-base md:text-lg text-background/80 font-body"
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.7, delay: 0.9, ease: "easeOut" }}
+              >
                 Millet puffs that pack flavour without the guilt. Baked, never fried. 100% compostable packaging.
-              </p>
+              </motion.p>
+
               <motion.div
                 className="mt-8 flex flex-col sm:flex-row gap-3 sm:gap-4"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.8 }}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 1.2, ease: "easeOut" }}
               >
                 <Link to="/shop" className="w-full sm:w-auto">
-                  <Button size="lg" className="w-full sm:w-auto bg-secondary text-secondary-foreground hover:bg-secondary/90 hover:shadow-lg transition-all duration-200 font-heading text-sm">
-                    Shop Now <ArrowRight className="ml-2 h-4 w-4" />
-                  </Button>
+                  <motion.div whileHover={{ scale: 1.05, y: -2 }} whileTap={{ scale: 0.97 }} transition={{ type: "spring", stiffness: 400, damping: 17 }}>
+                    <Button size="lg" className="w-full sm:w-auto bg-secondary text-secondary-foreground hover:bg-secondary/90 hover:shadow-xl transition-shadow duration-300 font-heading text-sm">
+                      Shop Now <ArrowRight className="ml-2 h-4 w-4" />
+                    </Button>
+                  </motion.div>
                 </Link>
                 <Link to="/our-story" className="w-full sm:w-auto">
-                  <Button size="lg" variant="outline" className="w-full sm:w-auto border-background/40 text-background hover:bg-background/10 transition-all duration-200">
-                    Our Story
-                  </Button>
+                  <motion.div whileHover={{ scale: 1.05, y: -2 }} whileTap={{ scale: 0.97 }} transition={{ type: "spring", stiffness: 400, damping: 17 }}>
+                    <Button size="lg" variant="outline" className="w-full sm:w-auto border-background/40 text-background hover:bg-background/10 transition-all duration-300">
+                      Our Story
+                    </Button>
+                  </motion.div>
                 </Link>
               </motion.div>
-            </motion.div>
+            </div>
           </div>
         </section>
 
