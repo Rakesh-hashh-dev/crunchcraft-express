@@ -80,7 +80,7 @@ const Index = () => {
                 </Link>
                 <Link to="/our-story" className="w-full sm:w-auto">
                   <motion.div whileHover={{ scale: 1.05, y: -2 }} whileTap={{ scale: 0.97 }} transition={{ type: "spring", stiffness: 400, damping: 17 }}>
-                    <Button size="lg" variant="outline" className="w-full sm:w-auto border-background/40 text-background hover:bg-background/10 transition-all duration-300">
+                    <Button size="lg" className="w-full sm:w-auto bg-secondary text-secondary-foreground hover:bg-secondary/90 hover:shadow-xl transition-shadow duration-300 font-heading text-sm">
                       Our Story
                     </Button>
                   </motion.div>
@@ -93,40 +93,86 @@ const Index = () => {
         <TrustBadges />
 
         {/* Product Carousel */}
-        <FadeInSection>
-          <section className="container py-12 md:py-24">
-            <h2 className="text-2xl md:text-3xl text-center mb-2">MilLet's Pop</h2>
-            <p className="text-center text-muted-foreground font-body mb-10">Choose your crunch</p>
-            <StaggerContainer className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
-              {flavours.map((f) => (
-                <StaggerItem key={f.name}>
-                  <ProductCard name={f.name} image={f.image} price={20} tag="Bestseller" />
-                </StaggerItem>
-              ))}
-            </StaggerContainer>
-          </section>
-        </FadeInSection>
+        <section className="container py-12 md:py-24">
+          <motion.h2
+            className="text-2xl md:text-3xl text-center mb-2"
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-60px" }}
+            transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+          >
+            MilLet's Pop
+          </motion.h2>
+          <motion.p
+            className="text-center text-muted-foreground font-body mb-10"
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5, delay: 0.2 }}
+          >
+            Choose your crunch
+          </motion.p>
+          <motion.div
+            className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3"
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: "-80px" }}
+            variants={{ hidden: {}, visible: { transition: { staggerChildren: 0.18 } } }}
+          >
+            {flavours.map((f) => (
+              <motion.div
+                key={f.name}
+                variants={{
+                  hidden: { opacity: 0, y: 40, scale: 0.95 },
+                  visible: { opacity: 1, y: 0, scale: 1 },
+                }}
+                transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+              >
+                <ProductCard name={f.name} image={f.image} price={20} tag="Bestseller" />
+              </motion.div>
+            ))}
+          </motion.div>
+        </section>
 
         {/* Why CrunchCraft */}
-        <FadeInSection>
-          <section className="bg-primary text-primary-foreground py-12 md:py-24">
-            <div className="container text-center max-w-2xl">
-              <h2 className="text-2xl md:text-3xl mb-6">Why CrunchCraft?</h2>
-              <div className="grid gap-8 grid-cols-1 sm:grid-cols-3 font-body">
-                {[
-                  { val: "118", label: "kcal per 30g serving" },
-                  { val: "4.2g", label: "Protein per serving" },
-                  { val: "0%", label: "Preservatives" },
-                ].map((s) => (
-                  <div key={s.val}>
-                    <p className="text-4xl font-heading mb-2">{s.val}</p>
-                    <p className="text-sm opacity-80">{s.label}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </section>
-        </FadeInSection>
+        <section className="bg-primary text-primary-foreground py-12 md:py-24 overflow-hidden">
+          <div className="container text-center max-w-2xl">
+            <motion.h2
+              className="text-2xl md:text-3xl mb-6"
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: "-60px" }}
+              transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
+            >
+              Why CrunchCraft?
+            </motion.h2>
+            <motion.div
+              className="grid gap-8 grid-cols-1 sm:grid-cols-3 font-body"
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, margin: "-60px" }}
+              variants={{ hidden: {}, visible: { transition: { staggerChildren: 0.2 } } }}
+            >
+              {[
+                { val: "118", label: "kcal per 30g serving" },
+                { val: "4.2g", label: "Protein per serving" },
+                { val: "0%", label: "Preservatives" },
+              ].map((s) => (
+                <motion.div
+                  key={s.val}
+                  variants={{
+                    hidden: { opacity: 0, y: 30, scale: 0.9 },
+                    visible: { opacity: 1, y: 0, scale: 1 },
+                  }}
+                  transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+                >
+                  <p className="text-4xl font-heading mb-2">{s.val}</p>
+                  <p className="text-sm opacity-80">{s.label}</p>
+                </motion.div>
+              ))}
+            </motion.div>
+          </div>
+        </section>
       </div>
     </PageTransition>
   );
