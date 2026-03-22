@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -6,6 +6,9 @@ import { useAdmin } from "@/hooks/useAdmin";
 import { PageTransition, FadeInSection } from "@/components/AnimationWrappers";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue
+} from "@/components/ui/select";
 import {
   ShoppingBag, Users, BarChart3, Package, ArrowLeft, Search,
   TrendingUp, IndianRupee, Clock
