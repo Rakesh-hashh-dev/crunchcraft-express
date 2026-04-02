@@ -20,7 +20,8 @@ import {
 } from "@/components/ui/alert-dialog";
 import {
   ShoppingBag, Users, BarChart3, Package, ArrowLeft, Search,
-  TrendingUp, IndianRupee, Clock, Plus, Trash2, Edit, UserPlus
+  TrendingUp, IndianRupee, Clock, Plus, Trash2, Edit, UserPlus,
+  PackageOpen, AlertTriangle
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
