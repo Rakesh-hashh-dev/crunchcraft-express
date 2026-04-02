@@ -206,8 +206,57 @@ const AdminDashboard = () => {
       toast.success("User profile deleted");
     }
   }, []);
+  // Product CRUD handlers
+  const handleAddProduct = useCallback(async () => {
+    if (!newProduct.name || !newProduct.price) { toast.error("Name and price are required"); return; }
+    const { data, error } = await supabase.from("products").insert({
+      name: newProduct.name,
+      description: newProduct.description || null,
+      price: Number(newProduct.price),
+      stock_quantity: Number(newProduct.stock_quantity) || 0,
+      low_stock_threshold: Number(newProduct.low_stock_threshold) || 10,
+      category: newProduct.category,
+      is_active: newProduct.is_active,
+    }).select().single();
+    if (error) { toast.error("Failed to add product"); }
+    else if (data) {
+      setProducts((prev) => [data, ...prev]);
+      setAddProductOpen(false);
+      setNewProduct({ name: "", description: "", price: "", stock_quantity: "", low_stock_threshold: "10", category: "millet-puffs", is_active: true });
+      toast.success("Product added");
+    }
+  }, [newProduct]);
 
-  useEffect(() => {
+  const handleEditProduct = useCallback(async () => {
+    if (!editProduct) return;
+    const { error } = await supabase.from("products").update({
+      name: editProduct.name,
+      description: editProduct.description,
+      price: editProduct.price,
+      stock_quantity: editProduct.stock_quantity,
+      low_stock_threshold: editProduct.low_stock_threshold,
+      category: editProduct.category,
+      is_active: editProduct.is_active,
+    }).eq("id", editProduct.id);
+    if (error) { toast.error("Failed to update product"); }
+    else {
+      setProducts((prev) => prev.map((p) => p.id === editProduct.id ? editProduct : p));
+      setEditProductOpen(false);
+      setEditProduct(null);
+      toast.success("Product updated");
+    }
+  }, [editProduct]);
+
+  const handleDeleteProduct = useCallback(async (productId: string) => {
+    const { error } = await supabase.from("products").delete().eq("id", productId);
+    if (error) { toast.error("Failed to delete product"); }
+    else {
+      setProducts((prev) => prev.filter((p) => p.id !== productId));
+      toast.success("Product deleted");
+    }
+  }, []);
+
+
     if (!adminLoading && !isAdmin) {
       toast.error("Access denied. Admin only.");
       navigate("/");
