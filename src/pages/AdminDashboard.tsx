@@ -266,12 +266,14 @@ const AdminDashboard = () => {
     if (!isAdmin) return;
     const fetchData = async () => {
       setLoading(true);
-      const [ordersRes, profilesRes] = await Promise.all([
+      const [ordersRes, profilesRes, productsRes] = await Promise.all([
         supabase.from("orders").select("*").order("created_at", { ascending: false }),
         supabase.from("profiles").select("*").order("created_at", { ascending: false }),
+        supabase.from("products").select("*").order("created_at", { ascending: false }),
       ]);
       if (ordersRes.data) setOrders(ordersRes.data);
       if (profilesRes.data) setProfiles(profilesRes.data);
+      if (productsRes.data) setProducts(productsRes.data);
       setLoading(false);
     };
     fetchData();
