@@ -39,8 +39,9 @@ const Index = () => {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 1.2, delay: 0.3 }}
+              style={{ opacity: overlayOpacity }}
             />
-          </div>
+          </motion.div>
           <div className="container relative z-10 py-16 md:py-20">
             <div className="max-w-lg">
               <motion.span
