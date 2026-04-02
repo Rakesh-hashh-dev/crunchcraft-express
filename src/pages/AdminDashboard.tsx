@@ -255,8 +255,7 @@ const AdminDashboard = () => {
       toast.success("Product deleted");
     }
   }, []);
-
-
+  useEffect(() => {
     if (!adminLoading && !isAdmin) {
       toast.error("Access denied. Admin only.");
       navigate("/");
