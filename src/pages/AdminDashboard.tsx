@@ -358,10 +358,17 @@ const AdminDashboard = () => {
       p.user_id.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  const filteredProducts = products.filter(
+    (p) => p.name.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const lowStockProducts = products.filter((p) => p.stock_quantity <= p.low_stock_threshold && p.is_active);
+
   const tabs = [
     { id: "overview" as Tab, label: "Overview", icon: BarChart3 },
     { id: "orders" as Tab, label: "Orders", icon: Package },
     { id: "users" as Tab, label: "Users", icon: Users },
+    { id: "inventory" as Tab, label: "Inventory", icon: PackageOpen },
   ];
 
   const ChartCard = ({ title, children }: { title: string; children: React.ReactNode }) => (
