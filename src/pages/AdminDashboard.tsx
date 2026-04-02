@@ -20,7 +20,8 @@ import {
 } from "@/components/ui/alert-dialog";
 import {
   ShoppingBag, Users, BarChart3, Package, ArrowLeft, Search,
-  TrendingUp, IndianRupee, Clock, Plus, Trash2, Edit, UserPlus
+  TrendingUp, IndianRupee, Clock, Plus, Trash2, Edit, UserPlus,
+  PackageOpen, AlertTriangle
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
@@ -29,7 +30,20 @@ import {
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, Area, AreaChart
 } from "recharts";
 
-type Tab = "overview" | "orders" | "users";
+type Tab = "overview" | "orders" | "users" | "inventory";
+
+interface Product {
+  id: string;
+  name: string;
+  description: string | null;
+  price: number;
+  stock_quantity: number;
+  low_stock_threshold: number;
+  image_url: string | null;
+  category: string | null;
+  is_active: boolean;
+  created_at: string;
+}
 
 interface Order {
   id: string;
@@ -89,6 +103,15 @@ const AdminDashboard = () => {
   // Add user dialog state
   const [addUserOpen, setAddUserOpen] = useState(false);
   const [newUser, setNewUser] = useState({ display_name: "", phone: "" });
+
+  // Inventory state
+  const [products, setProducts] = useState<Product[]>([]);
+  const [addProductOpen, setAddProductOpen] = useState(false);
+  const [editProductOpen, setEditProductOpen] = useState(false);
+  const [editProduct, setEditProduct] = useState<Product | null>(null);
+  const [newProduct, setNewProduct] = useState({
+    name: "", description: "", price: "", stock_quantity: "", low_stock_threshold: "10", category: "millet-puffs", is_active: true,
+  });
 
   const handleStatusChange = useCallback(async (orderId: string, newStatus: string) => {
     setUpdatingOrderId(orderId);
@@ -183,7 +206,55 @@ const AdminDashboard = () => {
       toast.success("User profile deleted");
     }
   }, []);
+  // Product CRUD handlers
+  const handleAddProduct = useCallback(async () => {
+    if (!newProduct.name || !newProduct.price) { toast.error("Name and price are required"); return; }
+    const { data, error } = await supabase.from("products").insert({
+      name: newProduct.name,
+      description: newProduct.description || null,
+      price: Number(newProduct.price),
+      stock_quantity: Number(newProduct.stock_quantity) || 0,
+      low_stock_threshold: Number(newProduct.low_stock_threshold) || 10,
+      category: newProduct.category,
+      is_active: newProduct.is_active,
+    }).select().single();
+    if (error) { toast.error("Failed to add product"); }
+    else if (data) {
+      setProducts((prev) => [data, ...prev]);
+      setAddProductOpen(false);
+      setNewProduct({ name: "", description: "", price: "", stock_quantity: "", low_stock_threshold: "10", category: "millet-puffs", is_active: true });
+      toast.success("Product added");
+    }
+  }, [newProduct]);
 
+  const handleEditProduct = useCallback(async () => {
+    if (!editProduct) return;
+    const { error } = await supabase.from("products").update({
+      name: editProduct.name,
+      description: editProduct.description,
+      price: editProduct.price,
+      stock_quantity: editProduct.stock_quantity,
+      low_stock_threshold: editProduct.low_stock_threshold,
+      category: editProduct.category,
+      is_active: editProduct.is_active,
+    }).eq("id", editProduct.id);
+    if (error) { toast.error("Failed to update product"); }
+    else {
+      setProducts((prev) => prev.map((p) => p.id === editProduct.id ? editProduct : p));
+      setEditProductOpen(false);
+      setEditProduct(null);
+      toast.success("Product updated");
+    }
+  }, [editProduct]);
+
+  const handleDeleteProduct = useCallback(async (productId: string) => {
+    const { error } = await supabase.from("products").delete().eq("id", productId);
+    if (error) { toast.error("Failed to delete product"); }
+    else {
+      setProducts((prev) => prev.filter((p) => p.id !== productId));
+      toast.success("Product deleted");
+    }
+  }, []);
   useEffect(() => {
     if (!adminLoading && !isAdmin) {
       toast.error("Access denied. Admin only.");
@@ -195,12 +266,14 @@ const AdminDashboard = () => {
     if (!isAdmin) return;
     const fetchData = async () => {
       setLoading(true);
-      const [ordersRes, profilesRes] = await Promise.all([
+      const [ordersRes, profilesRes, productsRes] = await Promise.all([
         supabase.from("orders").select("*").order("created_at", { ascending: false }),
         supabase.from("profiles").select("*").order("created_at", { ascending: false }),
+        supabase.from("products").select("*").order("created_at", { ascending: false }),
       ]);
       if (ordersRes.data) setOrders(ordersRes.data);
       if (profilesRes.data) setProfiles(profilesRes.data);
+      if (productsRes.data) setProducts(productsRes.data);
       setLoading(false);
     };
     fetchData();
@@ -285,10 +358,17 @@ const AdminDashboard = () => {
       p.user_id.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  const filteredProducts = products.filter(
+    (p) => p.name.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const lowStockProducts = products.filter((p) => p.stock_quantity <= p.low_stock_threshold && p.is_active);
+
   const tabs = [
     { id: "overview" as Tab, label: "Overview", icon: BarChart3 },
     { id: "orders" as Tab, label: "Orders", icon: Package },
     { id: "users" as Tab, label: "Users", icon: Users },
+    { id: "inventory" as Tab, label: "Inventory", icon: PackageOpen },
   ];
 
   const ChartCard = ({ title, children }: { title: string; children: React.ReactNode }) => (
@@ -674,6 +754,158 @@ const AdminDashboard = () => {
                 {filteredProfiles.length === 0 && (
                   <p className="col-span-full text-center text-muted-foreground py-8 font-body">No users found</p>
                 )}
+              </div>
+            </FadeInSection>
+          )}
+          {/* Inventory tab */}
+          {tab === "inventory" && (
+            <FadeInSection>
+              {/* Low stock alert */}
+              {lowStockProducts.length > 0 && (
+                <div className="mb-6 rounded-xl border border-destructive/30 bg-destructive/5 p-4">
+                  <div className="flex items-center gap-2 mb-3">
+                    <AlertTriangle className="h-5 w-5 text-destructive" />
+                    <h3 className="font-heading text-sm text-destructive">Low Stock Alerts ({lowStockProducts.length})</h3>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {lowStockProducts.map((p) => (
+                      <span key={p.id} className="inline-flex items-center gap-1.5 rounded-full bg-destructive/10 px-3 py-1 text-xs font-bold text-destructive">
+                        {p.name}: {p.stock_quantity} left
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              <div className="mb-4 flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between">
+                <div className="relative max-w-sm">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input placeholder="Search products..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="pl-9 bg-card" />
+                </div>
+                <Dialog open={addProductOpen} onOpenChange={setAddProductOpen}>
+                  <DialogTrigger asChild>
+                    <Button size="sm" className="gap-1.5"><Plus className="h-4 w-4" /> Add Product</Button>
+                  </DialogTrigger>
+                  <DialogContent className="max-w-lg">
+                    <DialogHeader><DialogTitle>Add New Product</DialogTitle></DialogHeader>
+                    <div className="grid gap-4 py-4">
+                      <div className="grid grid-cols-2 gap-4">
+                        <div><Label>Product Name *</Label><Input value={newProduct.name} onChange={(e) => setNewProduct((p) => ({ ...p, name: e.target.value }))} /></div>
+                        <div><Label>Price (₹) *</Label><Input type="number" value={newProduct.price} onChange={(e) => setNewProduct((p) => ({ ...p, price: e.target.value }))} /></div>
+                      </div>
+                      <div><Label>Description</Label><Input value={newProduct.description} onChange={(e) => setNewProduct((p) => ({ ...p, description: e.target.value }))} /></div>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div><Label>Stock Quantity</Label><Input type="number" value={newProduct.stock_quantity} onChange={(e) => setNewProduct((p) => ({ ...p, stock_quantity: e.target.value }))} /></div>
+                        <div><Label>Low Stock Threshold</Label><Input type="number" value={newProduct.low_stock_threshold} onChange={(e) => setNewProduct((p) => ({ ...p, low_stock_threshold: e.target.value }))} /></div>
+                      </div>
+                      <div><Label>Category</Label><Input value={newProduct.category} onChange={(e) => setNewProduct((p) => ({ ...p, category: e.target.value }))} /></div>
+                    </div>
+                    <DialogFooter>
+                      <DialogClose asChild><Button variant="outline">Cancel</Button></DialogClose>
+                      <Button onClick={handleAddProduct}>Add Product</Button>
+                    </DialogFooter>
+                  </DialogContent>
+                </Dialog>
+              </div>
+
+              {/* Edit product dialog */}
+              <Dialog open={editProductOpen} onOpenChange={setEditProductOpen}>
+                <DialogContent className="max-w-lg">
+                  <DialogHeader><DialogTitle>Edit Product</DialogTitle></DialogHeader>
+                  {editProduct && (
+                    <div className="grid gap-4 py-4">
+                      <div className="grid grid-cols-2 gap-4">
+                        <div><Label>Product Name *</Label><Input value={editProduct.name} onChange={(e) => setEditProduct((p) => p ? { ...p, name: e.target.value } : p)} /></div>
+                        <div><Label>Price (₹) *</Label><Input type="number" value={editProduct.price} onChange={(e) => setEditProduct((p) => p ? { ...p, price: Number(e.target.value) } : p)} /></div>
+                      </div>
+                      <div><Label>Description</Label><Input value={editProduct.description || ""} onChange={(e) => setEditProduct((p) => p ? { ...p, description: e.target.value } : p)} /></div>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div><Label>Stock Quantity</Label><Input type="number" value={editProduct.stock_quantity} onChange={(e) => setEditProduct((p) => p ? { ...p, stock_quantity: Number(e.target.value) } : p)} /></div>
+                        <div><Label>Low Stock Threshold</Label><Input type="number" value={editProduct.low_stock_threshold} onChange={(e) => setEditProduct((p) => p ? { ...p, low_stock_threshold: Number(e.target.value) } : p)} /></div>
+                      </div>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div><Label>Category</Label><Input value={editProduct.category || ""} onChange={(e) => setEditProduct((p) => p ? { ...p, category: e.target.value } : p)} /></div>
+                        <div className="flex items-end gap-2 pb-1">
+                          <Label>Active</Label>
+                          <Button variant={editProduct.is_active ? "default" : "outline"} size="sm" onClick={() => setEditProduct((p) => p ? { ...p, is_active: !p.is_active } : p)}>
+                            {editProduct.is_active ? "Active" : "Inactive"}
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                  <DialogFooter>
+                    <DialogClose asChild><Button variant="outline">Cancel</Button></DialogClose>
+                    <Button onClick={handleEditProduct}>Save Changes</Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+
+              <div className="rounded-xl border bg-card overflow-x-auto">
+                <table className="w-full text-sm font-body">
+                  <thead>
+                    <tr className="border-b text-muted-foreground text-left">
+                      <th className="p-4">Product</th>
+                      <th className="p-4">Category</th>
+                      <th className="p-4">Price</th>
+                      <th className="p-4">Stock</th>
+                      <th className="p-4">Threshold</th>
+                      <th className="p-4">Status</th>
+                      <th className="p-4">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredProducts.map((p) => {
+                      const isLow = p.stock_quantity <= p.low_stock_threshold;
+                      return (
+                        <tr key={p.id} className="border-b last:border-0 hover:bg-muted/50 transition-colors">
+                          <td className="p-4 font-medium">{p.name}</td>
+                          <td className="p-4 capitalize text-muted-foreground">{p.category || "—"}</td>
+                          <td className="p-4 font-bold">₹{p.price}</td>
+                          <td className="p-4">
+                            <span className={`inline-flex items-center gap-1 font-bold ${isLow ? "text-destructive" : "text-primary"}`}>
+                              {isLow && <AlertTriangle className="h-3.5 w-3.5" />}
+                              {p.stock_quantity}
+                            </span>
+                          </td>
+                          <td className="p-4 text-muted-foreground">{p.low_stock_threshold}</td>
+                          <td className="p-4">
+                            <span className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-bold ${p.is_active ? "bg-primary/20 text-primary" : "bg-muted text-muted-foreground"}`}>
+                              {p.is_active ? "Active" : "Inactive"}
+                            </span>
+                          </td>
+                          <td className="p-4">
+                            <div className="flex gap-1">
+                              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => { setEditProduct(p); setEditProductOpen(true); }}>
+                                <Edit className="h-3.5 w-3.5" />
+                              </Button>
+                              <AlertDialog>
+                                <AlertDialogTrigger asChild>
+                                  <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive">
+                                    <Trash2 className="h-3.5 w-3.5" />
+                                  </Button>
+                                </AlertDialogTrigger>
+                                <AlertDialogContent>
+                                  <AlertDialogHeader>
+                                    <AlertDialogTitle>Delete Product?</AlertDialogTitle>
+                                    <AlertDialogDescription>This will permanently delete "{p.name}" from inventory.</AlertDialogDescription>
+                                  </AlertDialogHeader>
+                                  <AlertDialogFooter>
+                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                    <AlertDialogAction onClick={() => handleDeleteProduct(p.id)} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">Delete</AlertDialogAction>
+                                  </AlertDialogFooter>
+                                </AlertDialogContent>
+                              </AlertDialog>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                    {filteredProducts.length === 0 && (
+                      <tr><td colSpan={7} className="p-8 text-center text-muted-foreground">No products found. Add your first product!</td></tr>
+                    )}
+                  </tbody>
+                </table>
               </div>
             </FadeInSection>
           )}
