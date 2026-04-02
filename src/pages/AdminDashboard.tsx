@@ -7,12 +7,20 @@ import { useAdmin } from "@/hooks/useAdmin";
 import { PageTransition, FadeInSection } from "@/components/AnimationWrappers";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue
 } from "@/components/ui/select";
 import {
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogClose
+} from "@/components/ui/dialog";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger
+} from "@/components/ui/alert-dialog";
+import {
   ShoppingBag, Users, BarChart3, Package, ArrowLeft, Search,
-  TrendingUp, IndianRupee, Clock
+  TrendingUp, IndianRupee, Clock, Plus, Trash2, Edit, UserPlus
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
@@ -30,7 +38,11 @@ interface Order {
   total_amount: number;
   shipping_name: string;
   shipping_city: string;
+  shipping_address: string;
+  shipping_pin: string;
+  shipping_phone: string | null;
   payment_method: string;
+  user_id: string;
 }
 
 interface Profile {
@@ -63,19 +75,113 @@ const AdminDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [updatingOrderId, setUpdatingOrderId] = useState<string | null>(null);
 
+  // Add order dialog state
+  const [addOrderOpen, setAddOrderOpen] = useState(false);
+  const [newOrder, setNewOrder] = useState({
+    shipping_name: "", shipping_city: "", shipping_address: "", shipping_pin: "",
+    shipping_phone: "", payment_method: "cod", total_amount: "", status: "pending",
+  });
+
+  // Edit order dialog state
+  const [editOrderOpen, setEditOrderOpen] = useState(false);
+  const [editOrder, setEditOrder] = useState<Order | null>(null);
+
+  // Add user dialog state
+  const [addUserOpen, setAddUserOpen] = useState(false);
+  const [newUser, setNewUser] = useState({ display_name: "", phone: "" });
+
   const handleStatusChange = useCallback(async (orderId: string, newStatus: string) => {
     setUpdatingOrderId(orderId);
-    const { error } = await supabase
-      .from("orders")
-      .update({ status: newStatus })
-      .eq("id", orderId);
-    if (error) {
-      toast.error("Failed to update status");
-    } else {
+    const { error } = await supabase.from("orders").update({ status: newStatus }).eq("id", orderId);
+    if (error) { toast.error("Failed to update status"); }
+    else {
       setOrders((prev) => prev.map((o) => o.id === orderId ? { ...o, status: newStatus } : o));
       toast.success(`Order updated to "${newStatus}"`);
     }
     setUpdatingOrderId(null);
+  }, []);
+
+  const handleDeleteOrder = useCallback(async (orderId: string) => {
+    // Delete order items first, then the order
+    await supabase.from("order_items").delete().eq("order_id", orderId);
+    const { error } = await supabase.from("orders").delete().eq("id", orderId);
+    if (error) { toast.error("Failed to delete order"); }
+    else {
+      setOrders((prev) => prev.filter((o) => o.id !== orderId));
+      toast.success("Order deleted");
+    }
+  }, []);
+
+  const handleAddOrder = useCallback(async () => {
+    if (!newOrder.shipping_name || !newOrder.total_amount || !user) {
+      toast.error("Fill in required fields"); return;
+    }
+    const { data, error } = await supabase.from("orders").insert({
+      shipping_name: newOrder.shipping_name,
+      shipping_city: newOrder.shipping_city,
+      shipping_address: newOrder.shipping_address,
+      shipping_pin: newOrder.shipping_pin,
+      shipping_phone: newOrder.shipping_phone || null,
+      payment_method: newOrder.payment_method,
+      total_amount: Number(newOrder.total_amount),
+      status: newOrder.status,
+      user_id: user.id,
+    }).select().single();
+    if (error) { toast.error("Failed to add order"); }
+    else if (data) {
+      setOrders((prev) => [data, ...prev]);
+      setAddOrderOpen(false);
+      setNewOrder({ shipping_name: "", shipping_city: "", shipping_address: "", shipping_pin: "", shipping_phone: "", payment_method: "cod", total_amount: "", status: "pending" });
+      toast.success("Order added");
+    }
+  }, [newOrder, user]);
+
+  const handleEditOrder = useCallback(async () => {
+    if (!editOrder) return;
+    const { error } = await supabase.from("orders").update({
+      shipping_name: editOrder.shipping_name,
+      shipping_city: editOrder.shipping_city,
+      shipping_address: editOrder.shipping_address,
+      shipping_pin: editOrder.shipping_pin,
+      shipping_phone: editOrder.shipping_phone,
+      payment_method: editOrder.payment_method,
+      total_amount: editOrder.total_amount,
+      status: editOrder.status,
+    }).eq("id", editOrder.id);
+    if (error) { toast.error("Failed to update order"); }
+    else {
+      setOrders((prev) => prev.map((o) => o.id === editOrder.id ? editOrder : o));
+      setEditOrderOpen(false);
+      setEditOrder(null);
+      toast.success("Order updated");
+    }
+  }, [editOrder]);
+
+  const handleAddUser = useCallback(async () => {
+    if (!newUser.display_name) { toast.error("Name is required"); return; }
+    // Create a profile entry (admin-created, uses admin's user_id as placeholder)
+    if (!user) return;
+    const { data, error } = await supabase.from("profiles").insert({
+      display_name: newUser.display_name,
+      phone: newUser.phone || null,
+      user_id: user.id, // admin-created profile
+    }).select().single();
+    if (error) { toast.error("Failed to add user"); }
+    else if (data) {
+      setProfiles((prev) => [data, ...prev]);
+      setAddUserOpen(false);
+      setNewUser({ display_name: "", phone: "" });
+      toast.success("User profile added");
+    }
+  }, [newUser, user]);
+
+  const handleDeleteUser = useCallback(async (profileId: string) => {
+    const { error } = await supabase.from("profiles").delete().eq("id", profileId);
+    if (error) { toast.error("Failed to delete user"); }
+    else {
+      setProfiles((prev) => prev.filter((p) => p.id !== profileId));
+      toast.success("User profile deleted");
+    }
   }, []);
 
   useEffect(() => {
@@ -195,6 +301,44 @@ const AdminDashboard = () => {
     </motion.div>
   );
 
+  const OrderFormFields = ({ values, onChange }: { values: any; onChange: (field: string, val: string) => void }) => (
+    <div className="grid gap-4 py-4">
+      <div className="grid grid-cols-2 gap-4">
+        <div><Label>Customer Name *</Label><Input value={values.shipping_name} onChange={(e) => onChange("shipping_name", e.target.value)} /></div>
+        <div><Label>Amount (₹) *</Label><Input type="number" value={values.total_amount} onChange={(e) => onChange("total_amount", e.target.value)} /></div>
+      </div>
+      <div className="grid grid-cols-2 gap-4">
+        <div><Label>City</Label><Input value={values.shipping_city} onChange={(e) => onChange("shipping_city", e.target.value)} /></div>
+        <div><Label>PIN Code</Label><Input value={values.shipping_pin} onChange={(e) => onChange("shipping_pin", e.target.value)} /></div>
+      </div>
+      <div><Label>Address</Label><Input value={values.shipping_address} onChange={(e) => onChange("shipping_address", e.target.value)} /></div>
+      <div className="grid grid-cols-2 gap-4">
+        <div><Label>Phone</Label><Input value={values.shipping_phone || ""} onChange={(e) => onChange("shipping_phone", e.target.value)} /></div>
+        <div>
+          <Label>Payment Method</Label>
+          <Select value={values.payment_method} onValueChange={(v) => onChange("payment_method", v)}>
+            <SelectTrigger><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="cod">COD</SelectItem>
+              <SelectItem value="upi">UPI</SelectItem>
+              <SelectItem value="card">Card</SelectItem>
+              <SelectItem value="netbanking">Net Banking</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+      <div>
+        <Label>Status</Label>
+        <Select value={values.status} onValueChange={(v) => onChange("status", v)}>
+          <SelectTrigger><SelectValue /></SelectTrigger>
+          <SelectContent>
+            {ORDER_STATUSES.map((s) => (<SelectItem key={s} value={s} className="capitalize">{s}</SelectItem>))}
+          </SelectContent>
+        </Select>
+      </div>
+    </div>
+  );
+
   return (
     <PageTransition>
       <div className="min-h-screen bg-background">
@@ -225,7 +369,6 @@ const AdminDashboard = () => {
           {/* Overview */}
           {tab === "overview" && (
             <FadeInSection>
-              {/* Stat cards */}
               <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 mb-8">
                 {[
                   { label: "Total Revenue", value: `₹${totalRevenue.toLocaleString()}`, icon: IndianRupee, color: "text-primary" },
@@ -233,11 +376,7 @@ const AdminDashboard = () => {
                   { label: "Pending Orders", value: pendingOrders, icon: Clock, color: "text-destructive" },
                   { label: "Total Users", value: profiles.length, icon: Users, color: "text-primary" },
                 ].map((stat) => (
-                  <motion.div
-                    key={stat.label}
-                    whileHover={{ y: -2 }}
-                    className="rounded-xl border bg-card p-5 transition-shadow hover:shadow-lg"
-                  >
+                  <motion.div key={stat.label} whileHover={{ y: -2 }} className="rounded-xl border bg-card p-5 transition-shadow hover:shadow-lg">
                     <div className="flex items-center justify-between mb-2">
                       <span className="font-body text-sm text-muted-foreground">{stat.label}</span>
                       <stat.icon className={`h-5 w-5 ${stat.color}`} />
@@ -247,9 +386,7 @@ const AdminDashboard = () => {
                 ))}
               </div>
 
-              {/* Charts grid */}
               <div className="grid gap-6 grid-cols-1 lg:grid-cols-2 mb-8">
-                {/* Revenue trend */}
                 <ChartCard title="Revenue Over Time">
                   <ResponsiveContainer width="100%" height="100%">
                     <AreaChart data={revenueByMonth.length > 0 ? revenueByMonth : [{ month: "No data", revenue: 0 }]}>
@@ -262,16 +399,12 @@ const AdminDashboard = () => {
                       <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                       <XAxis dataKey="month" tick={{ fontSize: 11 }} stroke="hsl(var(--muted-foreground))" />
                       <YAxis tick={{ fontSize: 11 }} stroke="hsl(var(--muted-foreground))" tickFormatter={(v) => `₹${v}`} />
-                      <Tooltip
-                        contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 8, fontSize: 12 }}
-                        formatter={(value: number) => [`₹${value.toLocaleString()}`, "Revenue"]}
-                      />
+                      <Tooltip contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 8, fontSize: 12 }} formatter={(value: number) => [`₹${value.toLocaleString()}`, "Revenue"]} />
                       <Area type="monotone" dataKey="revenue" stroke="hsl(var(--primary))" fill="url(#revenueGrad)" strokeWidth={2} />
                     </AreaChart>
                   </ResponsiveContainer>
                 </ChartCard>
 
-                {/* Daily orders + revenue */}
                 <ChartCard title="Daily Orders & Revenue">
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={dailyOrders.length > 0 ? dailyOrders : [{ date: "No data", orders: 0, revenue: 0 }]}>
@@ -279,9 +412,7 @@ const AdminDashboard = () => {
                       <XAxis dataKey="date" tick={{ fontSize: 10 }} stroke="hsl(var(--muted-foreground))" />
                       <YAxis yAxisId="left" tick={{ fontSize: 11 }} stroke="hsl(var(--muted-foreground))" />
                       <YAxis yAxisId="right" orientation="right" tick={{ fontSize: 11 }} stroke="hsl(var(--muted-foreground))" tickFormatter={(v) => `₹${v}`} />
-                      <Tooltip
-                        contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 8, fontSize: 12 }}
-                      />
+                      <Tooltip contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 8, fontSize: 12 }} />
                       <Legend wrapperStyle={{ fontSize: 12 }} />
                       <Bar yAxisId="left" dataKey="orders" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} name="Orders" />
                       <Bar yAxisId="right" dataKey="revenue" fill="hsl(var(--secondary))" radius={[4, 4, 0, 0]} name="Revenue (₹)" />
@@ -289,54 +420,28 @@ const AdminDashboard = () => {
                   </ResponsiveContainer>
                 </ChartCard>
 
-                {/* Order status pie */}
                 <ChartCard title="Orders by Status">
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
-                      <Pie
-                        data={ordersByStatus.length > 0 ? ordersByStatus : [{ status: "No orders", count: 1 }]}
-                        dataKey="count"
-                        nameKey="status"
-                        cx="50%"
-                        cy="50%"
-                        outerRadius={90}
-                        label={({ status, percent }) => `${status} ${(percent * 100).toFixed(0)}%`}
-                        labelLine={false}
-                      >
-                        {(ordersByStatus.length > 0 ? ordersByStatus : [{ status: "No orders", count: 1 }]).map((_, i) => (
-                          <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />
-                        ))}
+                      <Pie data={ordersByStatus.length > 0 ? ordersByStatus : [{ status: "No orders", count: 1 }]} dataKey="count" nameKey="status" cx="50%" cy="50%" outerRadius={90} label={({ status, percent }) => `${status} ${(percent * 100).toFixed(0)}%`} labelLine={false}>
+                        {(ordersByStatus.length > 0 ? ordersByStatus : [{ status: "No orders", count: 1 }]).map((_, i) => (<Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />))}
                       </Pie>
                       <Tooltip contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 8, fontSize: 12 }} />
                     </PieChart>
                   </ResponsiveContainer>
                 </ChartCard>
 
-                {/* Payment methods pie */}
                 <ChartCard title="Payment Methods">
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
-                      <Pie
-                        data={ordersByPayment.length > 0 ? ordersByPayment : [{ method: "No data", count: 1 }]}
-                        dataKey="count"
-                        nameKey="method"
-                        cx="50%"
-                        cy="50%"
-                        innerRadius={50}
-                        outerRadius={90}
-                        label={({ method, percent }) => `${method} ${(percent * 100).toFixed(0)}%`}
-                        labelLine={false}
-                      >
-                        {(ordersByPayment.length > 0 ? ordersByPayment : [{ method: "No data", count: 1 }]).map((_, i) => (
-                          <Cell key={i} fill={CHART_COLORS[(i + 2) % CHART_COLORS.length]} />
-                        ))}
+                      <Pie data={ordersByPayment.length > 0 ? ordersByPayment : [{ method: "No data", count: 1 }]} dataKey="count" nameKey="method" cx="50%" cy="50%" innerRadius={50} outerRadius={90} label={({ method, percent }) => `${method} ${(percent * 100).toFixed(0)}%`} labelLine={false}>
+                        {(ordersByPayment.length > 0 ? ordersByPayment : [{ method: "No data", count: 1 }]).map((_, i) => (<Cell key={i} fill={CHART_COLORS[(i + 2) % CHART_COLORS.length]} />))}
                       </Pie>
                       <Tooltip contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 8, fontSize: 12 }} />
                     </PieChart>
                   </ResponsiveContainer>
                 </ChartCard>
 
-                {/* Top cities bar */}
                 <ChartCard title="Top Cities by Orders">
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={ordersByCity.length > 0 ? ordersByCity : [{ city: "No data", count: 0 }]} layout="vertical">
@@ -349,7 +454,6 @@ const AdminDashboard = () => {
                   </ResponsiveContainer>
                 </ChartCard>
 
-                {/* User growth */}
                 <ChartCard title="User Growth">
                   <ResponsiveContainer width="100%" height="100%">
                     <LineChart data={userGrowth.length > 0 ? userGrowth : [{ month: "No data", newUsers: 0, totalUsers: 0 }]}>
@@ -365,7 +469,6 @@ const AdminDashboard = () => {
                 </ChartCard>
               </div>
 
-              {/* Recent orders table */}
               <div className="rounded-xl border bg-card p-6">
                 <h2 className="font-heading text-lg mb-4">Recent Orders</h2>
                 <div className="overflow-x-auto">
@@ -386,13 +489,7 @@ const AdminDashboard = () => {
                           <td className="py-3 pr-4">{o.shipping_name}</td>
                           <td className="py-3 pr-4 font-bold">₹{o.total_amount}</td>
                           <td className="py-3 pr-4">
-                            <span className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-bold ${
-                              o.status === "pending"
-                                ? "bg-secondary/20 text-secondary"
-                                : o.status === "completed"
-                                ? "bg-primary/20 text-primary"
-                                : "bg-muted text-muted-foreground"
-                            }`}>
+                            <span className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-bold ${o.status === "pending" ? "bg-secondary/20 text-secondary" : o.status === "completed" ? "bg-primary/20 text-primary" : "bg-muted text-muted-foreground"}`}>
                               {o.status}
                             </span>
                           </td>
@@ -412,12 +509,43 @@ const AdminDashboard = () => {
           {/* Orders tab */}
           {tab === "orders" && (
             <FadeInSection>
-              <div className="mb-4">
+              <div className="mb-4 flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between">
                 <div className="relative max-w-sm">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input placeholder="Search by name or order ID..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="pl-9 bg-card" />
                 </div>
+                <Dialog open={addOrderOpen} onOpenChange={setAddOrderOpen}>
+                  <DialogTrigger asChild>
+                    <Button size="sm" className="gap-1.5"><Plus className="h-4 w-4" /> Add Order</Button>
+                  </DialogTrigger>
+                  <DialogContent className="max-w-lg">
+                    <DialogHeader><DialogTitle>Add New Order</DialogTitle></DialogHeader>
+                    <OrderFormFields values={newOrder} onChange={(field, val) => setNewOrder((prev) => ({ ...prev, [field]: val }))} />
+                    <DialogFooter>
+                      <DialogClose asChild><Button variant="outline">Cancel</Button></DialogClose>
+                      <Button onClick={handleAddOrder}>Create Order</Button>
+                    </DialogFooter>
+                  </DialogContent>
+                </Dialog>
               </div>
+
+              {/* Edit order dialog */}
+              <Dialog open={editOrderOpen} onOpenChange={setEditOrderOpen}>
+                <DialogContent className="max-w-lg">
+                  <DialogHeader><DialogTitle>Edit Order</DialogTitle></DialogHeader>
+                  {editOrder && (
+                    <OrderFormFields
+                      values={editOrder}
+                      onChange={(field, val) => setEditOrder((prev) => prev ? { ...prev, [field]: field === "total_amount" ? Number(val) : val } : prev)}
+                    />
+                  )}
+                  <DialogFooter>
+                    <DialogClose asChild><Button variant="outline">Cancel</Button></DialogClose>
+                    <Button onClick={handleEditOrder}>Save Changes</Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+
               <div className="rounded-xl border bg-card overflow-x-auto">
                 <table className="w-full text-sm font-body">
                   <thead>
@@ -429,6 +557,7 @@ const AdminDashboard = () => {
                       <th className="p-4">Amount</th>
                       <th className="p-4">Status</th>
                       <th className="p-4">Date</th>
+                      <th className="p-4">Actions</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -440,26 +569,42 @@ const AdminDashboard = () => {
                         <td className="p-4 capitalize">{o.payment_method}</td>
                         <td className="p-4 font-bold">₹{o.total_amount}</td>
                         <td className="p-4">
-                          <Select
-                            value={o.status}
-                            onValueChange={(val) => handleStatusChange(o.id, val)}
-                            disabled={updatingOrderId === o.id}
-                          >
-                            <SelectTrigger className="w-[130px] h-8 text-xs">
-                              <SelectValue />
-                            </SelectTrigger>
+                          <Select value={o.status} onValueChange={(val) => handleStatusChange(o.id, val)} disabled={updatingOrderId === o.id}>
+                            <SelectTrigger className="w-[130px] h-8 text-xs"><SelectValue /></SelectTrigger>
                             <SelectContent>
-                              {ORDER_STATUSES.map((s) => (
-                                <SelectItem key={s} value={s} className="text-xs capitalize">{s}</SelectItem>
-                              ))}
+                              {ORDER_STATUSES.map((s) => (<SelectItem key={s} value={s} className="text-xs capitalize">{s}</SelectItem>))}
                             </SelectContent>
                           </Select>
                         </td>
                         <td className="p-4 text-muted-foreground">{new Date(o.created_at).toLocaleDateString()}</td>
+                        <td className="p-4">
+                          <div className="flex gap-1">
+                            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => { setEditOrder(o); setEditOrderOpen(true); }}>
+                              <Edit className="h-3.5 w-3.5" />
+                            </Button>
+                            <AlertDialog>
+                              <AlertDialogTrigger asChild>
+                                <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive">
+                                  <Trash2 className="h-3.5 w-3.5" />
+                                </Button>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent>
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle>Delete Order?</AlertDialogTitle>
+                                  <AlertDialogDescription>This will permanently delete this order and its items.</AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                  <AlertDialogAction onClick={() => handleDeleteOrder(o.id)} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">Delete</AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
+                          </div>
+                        </td>
                       </tr>
                     ))}
                     {filteredOrders.length === 0 && (
-                      <tr><td colSpan={7} className="p-8 text-center text-muted-foreground">No orders found</td></tr>
+                      <tr><td colSpan={8} className="p-8 text-center text-muted-foreground">No orders found</td></tr>
                     )}
                   </tbody>
                 </table>
@@ -470,23 +615,58 @@ const AdminDashboard = () => {
           {/* Users tab */}
           {tab === "users" && (
             <FadeInSection>
-              <div className="mb-4">
+              <div className="mb-4 flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between">
                 <div className="relative max-w-sm">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input placeholder="Search by name..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="pl-9 bg-card" />
                 </div>
+                <Dialog open={addUserOpen} onOpenChange={setAddUserOpen}>
+                  <DialogTrigger asChild>
+                    <Button size="sm" className="gap-1.5"><UserPlus className="h-4 w-4" /> Add User</Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader><DialogTitle>Add User Profile</DialogTitle></DialogHeader>
+                    <div className="grid gap-4 py-4">
+                      <div><Label>Display Name *</Label><Input value={newUser.display_name} onChange={(e) => setNewUser((p) => ({ ...p, display_name: e.target.value }))} /></div>
+                      <div><Label>Phone</Label><Input value={newUser.phone} onChange={(e) => setNewUser((p) => ({ ...p, phone: e.target.value }))} /></div>
+                    </div>
+                    <DialogFooter>
+                      <DialogClose asChild><Button variant="outline">Cancel</Button></DialogClose>
+                      <Button onClick={handleAddUser}>Add User</Button>
+                    </DialogFooter>
+                  </DialogContent>
+                </Dialog>
               </div>
               <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
                 {filteredProfiles.map((p) => (
                   <motion.div key={p.id} whileHover={{ y: -2 }} className="rounded-xl border bg-card p-5 transition-shadow hover:shadow-lg">
-                    <div className="flex items-center gap-3 mb-3">
-                      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-primary font-heading text-sm">
-                        {(p.display_name || "U")[0].toUpperCase()}
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3 mb-3">
+                        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-primary font-heading text-sm">
+                          {(p.display_name || "U")[0].toUpperCase()}
+                        </div>
+                        <div>
+                          <p className="font-heading text-sm">{p.display_name || "Unnamed"}</p>
+                          <p className="font-body text-xs text-muted-foreground">{p.phone || "No phone"}</p>
+                        </div>
                       </div>
-                      <div>
-                        <p className="font-heading text-sm">{p.display_name || "Unnamed"}</p>
-                        <p className="font-body text-xs text-muted-foreground">{p.phone || "No phone"}</p>
-                      </div>
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive">
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Delete User Profile?</AlertDialogTitle>
+                            <AlertDialogDescription>This will permanently remove this user profile.</AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction onClick={() => handleDeleteUser(p.id)} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">Delete</AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
                     </div>
                     <p className="font-body text-xs text-muted-foreground">Joined {new Date(p.created_at).toLocaleDateString()}</p>
                   </motion.div>

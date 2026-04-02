@@ -6,15 +6,25 @@ import { flavours } from "@/lib/products";
 import heroImg from "@/assets/hero-snacks.jpg";
 import { ArrowRight, Sparkles } from "lucide-react";
 import { PageTransition, FadeInSection, StaggerContainer, StaggerItem } from "@/components/AnimationWrappers";
-import { motion } from "framer-motion";
+import { motion, useScroll, useTransform } from "framer-motion";
+import { useRef } from "react";
 
 const Index = () => {
+  const heroRef = useRef<HTMLElement>(null);
+  const { scrollYProgress } = useScroll({
+    target: heroRef,
+    offset: ["start start", "end start"],
+  });
+  const heroY = useTransform(scrollYProgress, [0, 1], ["0%", "30%"]);
+  const heroScale = useTransform(scrollYProgress, [0, 1], [1, 1.15]);
+  const overlayOpacity = useTransform(scrollYProgress, [0, 1], [1, 0.4]);
+
   return (
     <PageTransition>
       <div className="flex flex-col">
         {/* Hero */}
-        <section className="relative min-h-[70vh] md:min-h-[80vh] flex items-center overflow-hidden">
-          <div className="absolute inset-0">
+        <section ref={heroRef} className="relative min-h-[70vh] md:min-h-[80vh] flex items-center overflow-hidden">
+          <motion.div className="absolute inset-0" style={{ y: heroY }}>
             <motion.img
               src={heroImg}
               alt="CrunchCraft millet puffs"
@@ -22,14 +32,16 @@ const Index = () => {
               initial={{ scale: 1.15, filter: "blur(4px)" }}
               animate={{ scale: 1, filter: "blur(0px)" }}
               transition={{ duration: 1.8, ease: [0.25, 0.46, 0.45, 0.94] }}
+              style={{ scale: heroScale }}
             />
             <motion.div
               className="absolute inset-0 bg-gradient-to-r from-foreground/85 via-foreground/60 to-transparent"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 1.2, delay: 0.3 }}
+              style={{ opacity: overlayOpacity }}
             />
-          </div>
+          </motion.div>
           <div className="container relative z-10 py-16 md:py-20">
             <div className="max-w-lg">
               <motion.span
