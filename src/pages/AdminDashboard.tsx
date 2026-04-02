@@ -30,7 +30,20 @@ import {
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, Area, AreaChart
 } from "recharts";
 
-type Tab = "overview" | "orders" | "users";
+type Tab = "overview" | "orders" | "users" | "inventory";
+
+interface Product {
+  id: string;
+  name: string;
+  description: string | null;
+  price: number;
+  stock_quantity: number;
+  low_stock_threshold: number;
+  image_url: string | null;
+  category: string | null;
+  is_active: boolean;
+  created_at: string;
+}
 
 interface Order {
   id: string;
