@@ -104,6 +104,15 @@ const AdminDashboard = () => {
   const [addUserOpen, setAddUserOpen] = useState(false);
   const [newUser, setNewUser] = useState({ display_name: "", phone: "" });
 
+  // Inventory state
+  const [products, setProducts] = useState<Product[]>([]);
+  const [addProductOpen, setAddProductOpen] = useState(false);
+  const [editProductOpen, setEditProductOpen] = useState(false);
+  const [editProduct, setEditProduct] = useState<Product | null>(null);
+  const [newProduct, setNewProduct] = useState({
+    name: "", description: "", price: "", stock_quantity: "", low_stock_threshold: "10", category: "millet-puffs", is_active: true,
+  });
+
   const handleStatusChange = useCallback(async (orderId: string, newStatus: string) => {
     setUpdatingOrderId(orderId);
     const { error } = await supabase.from("orders").update({ status: newStatus }).eq("id", orderId);
