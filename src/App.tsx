@@ -19,6 +19,7 @@ import Auth from "./pages/Auth";
 import Chat from "./pages/Chat";
 import AdminDashboard from "./pages/AdminDashboard";
 import NotFound from "./pages/NotFound";
+import { Analytics } from "@vercel/analytics/react";
 
 const queryClient = new QueryClient();
 
@@ -61,6 +62,7 @@ const App = () => (
           </CartProvider>
         </AuthProvider>
       </BrowserRouter>
+      <Analytics />
     </TooltipProvider>
   </QueryClientProvider>
 );
