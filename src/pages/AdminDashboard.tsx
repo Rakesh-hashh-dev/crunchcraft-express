@@ -247,6 +247,19 @@ const AdminDashboard = () => {
     }
   }, [editProduct]);
 
+  const handleRestockProduct = useCallback(async (productId: string, addQty: number, newThreshold: number) => {
+    const target = products.find((p) => p.id === productId);
+    if (!target) return;
+    const newStock = Math.max(0, target.stock_quantity + addQty);
+    const { error } = await supabase
+      .from("products")
+      .update({ stock_quantity: newStock, low_stock_threshold: newThreshold })
+      .eq("id", productId);
+    if (error) { toast.error("Failed to restock product"); return; }
+    setProducts((prev) => prev.map((p) => p.id === productId ? { ...p, stock_quantity: newStock, low_stock_threshold: newThreshold } : p));
+    toast.success(addQty > 0 ? `Restocked +${addQty} units` : "Inventory updated");
+  }, [products]);
+
   const handleDeleteProduct = useCallback(async (productId: string) => {
     const { error } = await supabase.from("products").delete().eq("id", productId);
     if (error) { toast.error("Failed to delete product"); }
