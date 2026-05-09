@@ -78,6 +78,88 @@ const CHART_COLORS = [
 
 const ORDER_STATUSES = ["pending", "confirmed", "processing", "shipped", "delivered", "cancelled"];
 
+const RestockDialog = ({
+  product,
+  onRestock,
+}: {
+  product: Product;
+  onRestock: (id: string, addQty: number, newThreshold: number) => void | Promise<void>;
+}) => {
+  const [open, setOpen] = useState(false);
+  const [addQty, setAddQty] = useState("10");
+  const [threshold, setThreshold] = useState(String(product.low_stock_threshold));
+
+  useEffect(() => {
+    if (open) {
+      setAddQty("10");
+      setThreshold(String(product.low_stock_threshold));
+    }
+  }, [open, product.low_stock_threshold]);
+
+  const projected = product.stock_quantity + (Number(addQty) || 0);
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button variant="ghost" size="icon" className="h-8 w-8 text-primary hover:text-primary" title="Restock">
+          <PackageOpen className="h-3.5 w-3.5" />
+        </Button>
+      </DialogTrigger>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Restock “{product.name}”</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-4 py-2">
+          <div className="rounded-lg border bg-muted/40 p-3 text-sm font-body">
+            Current stock: <span className="font-bold">{product.stock_quantity}</span>
+            <span className="mx-2 text-muted-foreground">·</span>
+            Threshold: <span className="font-bold">{product.low_stock_threshold}</span>
+          </div>
+          <div>
+            <Label>Add units</Label>
+            <Input
+              type="number"
+              min={0}
+              value={addQty}
+              onChange={(e) => setAddQty(e.target.value)}
+            />
+            <div className="mt-2 flex flex-wrap gap-1.5">
+              {[10, 25, 50, 100].map((n) => (
+                <Button key={n} type="button" variant="outline" size="sm" onClick={() => setAddQty(String(n))}>
+                  +{n}
+                </Button>
+              ))}
+            </div>
+            <p className="mt-2 text-xs text-muted-foreground font-body">
+              New stock will be <span className="font-bold">{projected}</span>
+            </p>
+          </div>
+          <div>
+            <Label>Low-stock threshold</Label>
+            <Input
+              type="number"
+              min={0}
+              value={threshold}
+              onChange={(e) => setThreshold(e.target.value)}
+            />
+          </div>
+        </div>
+        <DialogFooter>
+          <DialogClose asChild><Button variant="outline">Cancel</Button></DialogClose>
+          <Button
+            onClick={async () => {
+              await onRestock(product.id, Number(addQty) || 0, Number(threshold) || 0);
+              setOpen(false);
+            }}
+          >
+            Save
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+};
+
 const AdminDashboard = () => {
   const { user } = useAuth();
   const { isAdmin, loading: adminLoading } = useAdmin();
