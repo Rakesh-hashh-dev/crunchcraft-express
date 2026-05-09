@@ -889,6 +889,7 @@ const AdminDashboard = () => {
                           </td>
                           <td className="p-4">
                             <div className="flex gap-1">
+                              <RestockDialog product={p} onRestock={handleRestockProduct} />
                               <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => { setEditProduct(p); setEditProductOpen(true); }}>
                                 <Edit className="h-3.5 w-3.5" />
                               </Button>
