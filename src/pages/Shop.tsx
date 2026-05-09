@@ -1,14 +1,41 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import ProductCard from "@/components/ProductCard";
-import { flavours, sizeOptions, type Flavour } from "@/lib/products";
+import { flavours, sizeOptions, type Flavour, type Size } from "@/lib/products";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { PageTransition, FadeInSection, StaggerContainer, StaggerItem } from "@/components/AnimationWrappers";
+import { supabase } from "@/integrations/supabase/client";
+
+type StockMap = Record<string, { stock: number; lowThreshold: number }>;
+
+const stockKey = (flavour: Flavour, size: Size) => `${flavour}__${size}`;
 
 const Shop = () => {
   const [activeFilter, setActiveFilter] = useState<Flavour | "All">("All");
   const [subscription, setSubscription] = useState(false);
+  const [stockMap, setStockMap] = useState<StockMap>({});
+
+  useEffect(() => {
+    const fetchStock = async () => {
+      const { data } = await supabase
+        .from("products")
+        .select("name, category, stock_quantity, low_stock_threshold, is_active")
+        .eq("is_active", true);
+      if (!data) return;
+      const map: StockMap = {};
+      for (const p of data) {
+        const sizeMatch = sizeOptions.find((s) => p.name?.endsWith(s.label));
+        if (!p.category || !sizeMatch) continue;
+        map[stockKey(p.category as Flavour, sizeMatch.label)] = {
+          stock: p.stock_quantity,
+          lowThreshold: p.low_stock_threshold,
+        };
+      }
+      setStockMap(map);
+    };
+    fetchStock();
+  }, []);
 
   const filtered = activeFilter === "All" ? flavours : flavours.filter((f) => f.name === activeFilter);
 
@@ -37,13 +64,30 @@ const Shop = () => {
 
         <StaggerContainer className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
           {filtered.map((f) =>
-            sizeOptions.map((s) => (
-              <StaggerItem key={`${f.name}-${s.label}`}>
-                <ProductCard name={`${f.name} — ${s.label}`} image={f.image}
-                  price={subscription ? Math.round(s.price * 0.85) : s.price}
-                  tag={subscription ? "15% Off" : undefined} />
-              </StaggerItem>
-            ))
+            sizeOptions.map((s) => {
+              const stockInfo = stockMap[stockKey(f.name, s.label)];
+              const stock = stockInfo?.stock;
+              const low = stockInfo && stock !== undefined && stock > 0 && stock <= stockInfo.lowThreshold;
+              const out = stock === 0;
+              const tag = out
+                ? "Out of Stock"
+                : low
+                ? `Only ${stock} left`
+                : subscription
+                ? "15% Off"
+                : undefined;
+              return (
+                <StaggerItem key={`${f.name}-${s.label}`}>
+                  <ProductCard
+                    name={`${f.name} — ${s.label}`}
+                    image={f.image}
+                    price={subscription ? Math.round(s.price * 0.85) : s.price}
+                    tag={tag}
+                    outOfStock={out}
+                  />
+                </StaggerItem>
+              );
+            })
           )}
         </StaggerContainer>
 
