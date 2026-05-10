@@ -1066,7 +1066,7 @@ const AdminDashboard = () => {
                       );
                     })}
                     {filteredProducts.length === 0 && (
-                      <tr><td colSpan={7} className="p-8 text-center text-muted-foreground">No products found. Add your first product!</td></tr>
+                      <tr><td colSpan={8} className="p-8 text-center text-muted-foreground">No products found. Add your first product!</td></tr>
                     )}
                   </tbody>
                 </table>
