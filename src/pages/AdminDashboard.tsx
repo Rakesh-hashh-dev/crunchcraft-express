@@ -939,7 +939,8 @@ const AdminDashboard = () => {
                       <Button onClick={handleAddProduct}>Add Product</Button>
                     </DialogFooter>
                   </DialogContent>
-                </Dialog>
+                  </Dialog>
+                </div>
               </div>
 
               {/* Edit product dialog */}
