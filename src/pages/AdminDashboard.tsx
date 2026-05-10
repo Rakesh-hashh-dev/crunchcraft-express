@@ -910,6 +910,12 @@ const AdminDashboard = () => {
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input placeholder="Search products..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="pl-9 bg-card" />
                 </div>
+                <div className="flex flex-wrap gap-2">
+                  {selectedProductIds.size > 0 && (
+                    <Button size="sm" variant="secondary" className="gap-1.5" onClick={() => { setBulkAddQty("10"); setBulkThreshold(""); setBulkRestockOpen(true); }}>
+                      <PackageOpen className="h-4 w-4" /> Bulk Restock ({selectedProductIds.size})
+                    </Button>
+                  )}
                 <Dialog open={addProductOpen} onOpenChange={setAddProductOpen}>
                   <DialogTrigger asChild>
                     <Button size="sm" className="gap-1.5"><Plus className="h-4 w-4" /> Add Product</Button>
