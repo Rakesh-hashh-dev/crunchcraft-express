@@ -195,6 +195,10 @@ const AdminDashboard = () => {
   const [newProduct, setNewProduct] = useState({
     name: "", description: "", price: "", stock_quantity: "", low_stock_threshold: "10", category: "millet-puffs", is_active: true,
   });
+  const [selectedProductIds, setSelectedProductIds] = useState<Set<string>>(new Set());
+  const [bulkRestockOpen, setBulkRestockOpen] = useState(false);
+  const [bulkAddQty, setBulkAddQty] = useState("10");
+  const [bulkThreshold, setBulkThreshold] = useState("");
 
   const handleStatusChange = useCallback(async (orderId: string, newStatus: string) => {
     setUpdatingOrderId(orderId);
