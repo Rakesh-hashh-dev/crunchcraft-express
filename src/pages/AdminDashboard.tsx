@@ -347,6 +347,34 @@ const AdminDashboard = () => {
     toast.success(addQty > 0 ? `Restocked +${addQty} units` : "Inventory updated");
   }, [products]);
 
+  const handleBulkRestock = useCallback(async () => {
+    const ids = Array.from(selectedProductIds);
+    if (ids.length === 0) return;
+    const addQty = Number(bulkAddQty) || 0;
+    const thresholdRaw = bulkThreshold.trim();
+    const newThreshold = thresholdRaw === "" ? null : Math.max(0, Number(thresholdRaw) || 0);
+
+    const updates = ids.map((id) => {
+      const target = products.find((p) => p.id === id);
+      if (!target) return Promise.resolve({ error: null, id });
+      const newStock = Math.max(0, target.stock_quantity + addQty);
+      const patch: { stock_quantity: number; low_stock_threshold?: number } = { stock_quantity: newStock };
+      if (newThreshold !== null) patch.low_stock_threshold = newThreshold;
+      return supabase.from("products").update(patch).eq("id", id).then(({ error }) => ({ error, id, newStock }));
+    });
+    const results = await Promise.all(updates);
+    const failed = results.filter((r) => r.error).length;
+    if (failed > 0) toast.error(`${failed} of ${ids.length} updates failed`);
+    setProducts((prev) => prev.map((p) => {
+      if (!selectedProductIds.has(p.id)) return p;
+      const newStock = Math.max(0, p.stock_quantity + addQty);
+      return { ...p, stock_quantity: newStock, ...(newThreshold !== null ? { low_stock_threshold: newThreshold } : {}) };
+    }));
+    if (failed === 0) toast.success(`Restocked ${ids.length} products${addQty ? ` (+${addQty} each)` : ""}`);
+    setBulkRestockOpen(false);
+    setSelectedProductIds(new Set());
+  }, [selectedProductIds, bulkAddQty, bulkThreshold, products]);
+
   const handleDeleteProduct = useCallback(async (productId: string) => {
     const { error } = await supabase.from("products").delete().eq("id", productId);
     if (error) { toast.error("Failed to delete product"); }
