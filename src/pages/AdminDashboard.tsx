@@ -1006,8 +1006,22 @@ const AdminDashboard = () => {
                   <tbody>
                     {filteredProducts.map((p) => {
                       const isLow = p.stock_quantity <= p.low_stock_threshold;
+                      const checked = selectedProductIds.has(p.id);
                       return (
-                        <tr key={p.id} className="border-b last:border-0 hover:bg-muted/50 transition-colors">
+                        <tr key={p.id} className={`border-b last:border-0 hover:bg-muted/50 transition-colors ${checked ? "bg-muted/30" : ""}`}>
+                          <td className="p-4">
+                            <Checkbox
+                              checked={checked}
+                              onCheckedChange={(v) => {
+                                setSelectedProductIds((prev) => {
+                                  const next = new Set(prev);
+                                  if (v) next.add(p.id); else next.delete(p.id);
+                                  return next;
+                                });
+                              }}
+                              aria-label={`Select ${p.name}`}
+                            />
+                          </td>
                           <td className="p-4 font-medium">{p.name}</td>
                           <td className="p-4 capitalize text-muted-foreground">{p.category || "—"}</td>
                           <td className="p-4 font-bold">₹{p.price}</td>
