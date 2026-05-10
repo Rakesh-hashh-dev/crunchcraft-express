@@ -976,6 +976,44 @@ const AdminDashboard = () => {
                 </DialogContent>
               </Dialog>
 
+              {/* Bulk restock dialog */}
+              <Dialog open={bulkRestockOpen} onOpenChange={setBulkRestockOpen}>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Bulk Restock ({selectedProductIds.size} products)</DialogTitle>
+                  </DialogHeader>
+                  <div className="space-y-4 py-2">
+                    <div className="rounded-lg border bg-muted/40 p-3 text-sm font-body max-h-32 overflow-y-auto">
+                      {products.filter((p) => selectedProductIds.has(p.id)).map((p) => (
+                        <div key={p.id} className="flex justify-between py-0.5">
+                          <span>{p.name}</span>
+                          <span className="text-muted-foreground">stock: {p.stock_quantity} · thr: {p.low_stock_threshold}</span>
+                        </div>
+                      ))}
+                    </div>
+                    <div>
+                      <Label>Add units (to each product)</Label>
+                      <Input type="number" min={0} value={bulkAddQty} onChange={(e) => setBulkAddQty(e.target.value)} />
+                      <div className="mt-2 flex flex-wrap gap-1.5">
+                        {[10, 25, 50, 100].map((n) => (
+                          <Button key={n} type="button" variant="outline" size="sm" onClick={() => setBulkAddQty(String(n))}>
+                            +{n}
+                          </Button>
+                        ))}
+                      </div>
+                    </div>
+                    <div>
+                      <Label>Low-stock threshold (leave blank to keep current)</Label>
+                      <Input type="number" min={0} placeholder="Unchanged" value={bulkThreshold} onChange={(e) => setBulkThreshold(e.target.value)} />
+                    </div>
+                  </div>
+                  <DialogFooter>
+                    <DialogClose asChild><Button variant="outline">Cancel</Button></DialogClose>
+                    <Button onClick={handleBulkRestock}>Apply to {selectedProductIds.size}</Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+
               <div className="rounded-xl border bg-card overflow-x-auto">
                 <table className="w-full text-sm font-body">
                   <thead>
