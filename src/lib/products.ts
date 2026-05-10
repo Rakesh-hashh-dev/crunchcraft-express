@@ -1,8 +1,17 @@
 import periPeriImg from "@/assets/product-peri-peri.jpg";
 import saltLimeImg from "@/assets/product-salt-lime.jpg";
 import chaatMasalaImg from "@/assets/product-chaat-masala.jpg";
+import tomatoTwistImg from "@/assets/product-tomato-twist.jpg";
+import cheesyJalapenoImg from "@/assets/product-cheesy-jalapeno.jpg";
+import mintCorianderImg from "@/assets/product-mint-coriander.jpg";
 
-export type Flavour = "Peri-Peri Fiesta" | "Himalayan Pink Salt & Lime" | "Dark Roast Chaat Masala";
+export type Flavour =
+  | "Peri-Peri Fiesta"
+  | "Himalayan Pink Salt & Lime"
+  | "Dark Roast Chaat Masala"
+  | "Tangy Tomato Twist"
+  | "Cheesy Jalapeño"
+  | "Mint Coriander Chutney";
 export type Size = "30g" | "80g" | "200g";
 
 export const sizeOptions: { label: Size; price: number }[] = [
@@ -15,6 +24,9 @@ export const flavours: { name: Flavour; image: string; color: string }[] = [
   { name: "Peri-Peri Fiesta", image: periPeriImg, color: "bg-red-100" },
   { name: "Himalayan Pink Salt & Lime", image: saltLimeImg, color: "bg-green-100" },
   { name: "Dark Roast Chaat Masala", image: chaatMasalaImg, color: "bg-amber-100" },
+  { name: "Tangy Tomato Twist", image: tomatoTwistImg, color: "bg-orange-100" },
+  { name: "Cheesy Jalapeño", image: cheesyJalapenoImg, color: "bg-yellow-100" },
+  { name: "Mint Coriander Chutney", image: mintCorianderImg, color: "bg-emerald-100" },
 ];
 
 export const nutritionFacts = {
