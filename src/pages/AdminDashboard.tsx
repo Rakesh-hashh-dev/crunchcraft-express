@@ -14,6 +14,7 @@ import {
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogClose
 } from "@/components/ui/dialog";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger
@@ -194,6 +195,10 @@ const AdminDashboard = () => {
   const [newProduct, setNewProduct] = useState({
     name: "", description: "", price: "", stock_quantity: "", low_stock_threshold: "10", category: "millet-puffs", is_active: true,
   });
+  const [selectedProductIds, setSelectedProductIds] = useState<Set<string>>(new Set());
+  const [bulkRestockOpen, setBulkRestockOpen] = useState(false);
+  const [bulkAddQty, setBulkAddQty] = useState("10");
+  const [bulkThreshold, setBulkThreshold] = useState("");
 
   const handleStatusChange = useCallback(async (orderId: string, newStatus: string) => {
     setUpdatingOrderId(orderId);
@@ -341,6 +346,34 @@ const AdminDashboard = () => {
     setProducts((prev) => prev.map((p) => p.id === productId ? { ...p, stock_quantity: newStock, low_stock_threshold: newThreshold } : p));
     toast.success(addQty > 0 ? `Restocked +${addQty} units` : "Inventory updated");
   }, [products]);
+
+  const handleBulkRestock = useCallback(async () => {
+    const ids = Array.from(selectedProductIds);
+    if (ids.length === 0) return;
+    const addQty = Number(bulkAddQty) || 0;
+    const thresholdRaw = bulkThreshold.trim();
+    const newThreshold = thresholdRaw === "" ? null : Math.max(0, Number(thresholdRaw) || 0);
+
+    const updates = ids.map((id) => {
+      const target = products.find((p) => p.id === id);
+      if (!target) return Promise.resolve({ error: null, id });
+      const newStock = Math.max(0, target.stock_quantity + addQty);
+      const patch: { stock_quantity: number; low_stock_threshold?: number } = { stock_quantity: newStock };
+      if (newThreshold !== null) patch.low_stock_threshold = newThreshold;
+      return supabase.from("products").update(patch).eq("id", id).then(({ error }) => ({ error, id, newStock }));
+    });
+    const results = await Promise.all(updates);
+    const failed = results.filter((r) => r.error).length;
+    if (failed > 0) toast.error(`${failed} of ${ids.length} updates failed`);
+    setProducts((prev) => prev.map((p) => {
+      if (!selectedProductIds.has(p.id)) return p;
+      const newStock = Math.max(0, p.stock_quantity + addQty);
+      return { ...p, stock_quantity: newStock, ...(newThreshold !== null ? { low_stock_threshold: newThreshold } : {}) };
+    }));
+    if (failed === 0) toast.success(`Restocked ${ids.length} products${addQty ? ` (+${addQty} each)` : ""}`);
+    setBulkRestockOpen(false);
+    setSelectedProductIds(new Set());
+  }, [selectedProductIds, bulkAddQty, bulkThreshold, products]);
 
   const handleDeleteProduct = useCallback(async (productId: string) => {
     const { error } = await supabase.from("products").delete().eq("id", productId);
@@ -877,6 +910,12 @@ const AdminDashboard = () => {
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input placeholder="Search products..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="pl-9 bg-card" />
                 </div>
+                <div className="flex flex-wrap gap-2">
+                  {selectedProductIds.size > 0 && (
+                    <Button size="sm" variant="secondary" className="gap-1.5" onClick={() => { setBulkAddQty("10"); setBulkThreshold(""); setBulkRestockOpen(true); }}>
+                      <PackageOpen className="h-4 w-4" /> Bulk Restock ({selectedProductIds.size})
+                    </Button>
+                  )}
                 <Dialog open={addProductOpen} onOpenChange={setAddProductOpen}>
                   <DialogTrigger asChild>
                     <Button size="sm" className="gap-1.5"><Plus className="h-4 w-4" /> Add Product</Button>
@@ -900,7 +939,8 @@ const AdminDashboard = () => {
                       <Button onClick={handleAddProduct}>Add Product</Button>
                     </DialogFooter>
                   </DialogContent>
-                </Dialog>
+                  </Dialog>
+                </div>
               </div>
 
               {/* Edit product dialog */}
@@ -936,10 +976,62 @@ const AdminDashboard = () => {
                 </DialogContent>
               </Dialog>
 
+              {/* Bulk restock dialog */}
+              <Dialog open={bulkRestockOpen} onOpenChange={setBulkRestockOpen}>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Bulk Restock ({selectedProductIds.size} products)</DialogTitle>
+                  </DialogHeader>
+                  <div className="space-y-4 py-2">
+                    <div className="rounded-lg border bg-muted/40 p-3 text-sm font-body max-h-32 overflow-y-auto">
+                      {products.filter((p) => selectedProductIds.has(p.id)).map((p) => (
+                        <div key={p.id} className="flex justify-between py-0.5">
+                          <span>{p.name}</span>
+                          <span className="text-muted-foreground">stock: {p.stock_quantity} · thr: {p.low_stock_threshold}</span>
+                        </div>
+                      ))}
+                    </div>
+                    <div>
+                      <Label>Add units (to each product)</Label>
+                      <Input type="number" min={0} value={bulkAddQty} onChange={(e) => setBulkAddQty(e.target.value)} />
+                      <div className="mt-2 flex flex-wrap gap-1.5">
+                        {[10, 25, 50, 100].map((n) => (
+                          <Button key={n} type="button" variant="outline" size="sm" onClick={() => setBulkAddQty(String(n))}>
+                            +{n}
+                          </Button>
+                        ))}
+                      </div>
+                    </div>
+                    <div>
+                      <Label>Low-stock threshold (leave blank to keep current)</Label>
+                      <Input type="number" min={0} placeholder="Unchanged" value={bulkThreshold} onChange={(e) => setBulkThreshold(e.target.value)} />
+                    </div>
+                  </div>
+                  <DialogFooter>
+                    <DialogClose asChild><Button variant="outline">Cancel</Button></DialogClose>
+                    <Button onClick={handleBulkRestock}>Apply to {selectedProductIds.size}</Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+
               <div className="rounded-xl border bg-card overflow-x-auto">
                 <table className="w-full text-sm font-body">
                   <thead>
                     <tr className="border-b text-muted-foreground text-left">
+                      <th className="p-4 w-10">
+                        <Checkbox
+                          checked={filteredProducts.length > 0 && filteredProducts.every((p) => selectedProductIds.has(p.id))}
+                          onCheckedChange={(v) => {
+                            setSelectedProductIds((prev) => {
+                              const next = new Set(prev);
+                              if (v) filteredProducts.forEach((p) => next.add(p.id));
+                              else filteredProducts.forEach((p) => next.delete(p.id));
+                              return next;
+                            });
+                          }}
+                          aria-label="Select all"
+                        />
+                      </th>
                       <th className="p-4">Product</th>
                       <th className="p-4">Category</th>
                       <th className="p-4">Price</th>
@@ -952,8 +1044,22 @@ const AdminDashboard = () => {
                   <tbody>
                     {filteredProducts.map((p) => {
                       const isLow = p.stock_quantity <= p.low_stock_threshold;
+                      const checked = selectedProductIds.has(p.id);
                       return (
-                        <tr key={p.id} className="border-b last:border-0 hover:bg-muted/50 transition-colors">
+                        <tr key={p.id} className={`border-b last:border-0 hover:bg-muted/50 transition-colors ${checked ? "bg-muted/30" : ""}`}>
+                          <td className="p-4">
+                            <Checkbox
+                              checked={checked}
+                              onCheckedChange={(v) => {
+                                setSelectedProductIds((prev) => {
+                                  const next = new Set(prev);
+                                  if (v) next.add(p.id); else next.delete(p.id);
+                                  return next;
+                                });
+                              }}
+                              aria-label={`Select ${p.name}`}
+                            />
+                          </td>
                           <td className="p-4 font-medium">{p.name}</td>
                           <td className="p-4 capitalize text-muted-foreground">{p.category || "—"}</td>
                           <td className="p-4 font-bold">₹{p.price}</td>
@@ -998,7 +1104,7 @@ const AdminDashboard = () => {
                       );
                     })}
                     {filteredProducts.length === 0 && (
-                      <tr><td colSpan={7} className="p-8 text-center text-muted-foreground">No products found. Add your first product!</td></tr>
+                      <tr><td colSpan={8} className="p-8 text-center text-muted-foreground">No products found. Add your first product!</td></tr>
                     )}
                   </tbody>
                 </table>
