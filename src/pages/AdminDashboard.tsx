@@ -980,6 +980,20 @@ const AdminDashboard = () => {
                 <table className="w-full text-sm font-body">
                   <thead>
                     <tr className="border-b text-muted-foreground text-left">
+                      <th className="p-4 w-10">
+                        <Checkbox
+                          checked={filteredProducts.length > 0 && filteredProducts.every((p) => selectedProductIds.has(p.id))}
+                          onCheckedChange={(v) => {
+                            setSelectedProductIds((prev) => {
+                              const next = new Set(prev);
+                              if (v) filteredProducts.forEach((p) => next.add(p.id));
+                              else filteredProducts.forEach((p) => next.delete(p.id));
+                              return next;
+                            });
+                          }}
+                          aria-label="Select all"
+                        />
+                      </th>
                       <th className="p-4">Product</th>
                       <th className="p-4">Category</th>
                       <th className="p-4">Price</th>
