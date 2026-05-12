@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { flavours, sizeOptions, nutritionFacts, certifications, type Flavour, type Size } from "@/lib/products";
 import { Button } from "@/components/ui/button";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
@@ -10,28 +10,77 @@ import { motion, AnimatePresence } from "framer-motion";
 const ProductDetail = () => {
   const [selectedFlavour, setSelectedFlavour] = useState<Flavour>("Peri-Peri Fiesta");
   const [selectedSize, setSelectedSize] = useState<Size>("80g");
+  const [galleryIndex, setGalleryIndex] = useState(0);
   const { addItem } = useCart();
 
   const currentFlavour = flavours.find((f) => f.name === selectedFlavour)!;
   const currentPrice = sizeOptions.find((s) => s.label === selectedSize)!.price;
+  const gallery = currentFlavour.gallery ?? [currentFlavour.image];
+
+  // Reset to first image when flavour changes; auto-rotate every 4s
+  useEffect(() => {
+    setGalleryIndex(0);
+  }, [selectedFlavour]);
+
+  useEffect(() => {
+    if (gallery.length <= 1) return;
+    const id = window.setInterval(() => {
+      setGalleryIndex((i) => (i + 1) % gallery.length);
+    }, 4000);
+    return () => window.clearInterval(id);
+  }, [gallery.length, selectedFlavour]);
+
+  const activeImage = gallery[galleryIndex] ?? currentFlavour.image;
 
   return (
     <PageTransition>
       <div className="container py-10 md:py-16">
         <div className="grid gap-10 lg:grid-cols-2">
-          <div className="overflow-hidden rounded-xl bg-muted">
-            <AnimatePresence mode="wait">
-              <motion.img
-                key={currentFlavour.name}
-                src={currentFlavour.image}
-                alt={currentFlavour.name}
-                className="w-full aspect-square object-cover"
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.95 }}
-                transition={{ duration: 0.3 }}
-              />
-            </AnimatePresence>
+          <div className="flex flex-col gap-3">
+            <div className="overflow-hidden rounded-xl bg-muted relative">
+              <AnimatePresence mode="wait">
+                <motion.img
+                  key={`${currentFlavour.name}-${galleryIndex}`}
+                  src={activeImage}
+                  alt={`${currentFlavour.name} — view ${galleryIndex + 1}`}
+                  className="w-full aspect-square object-cover"
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.95 }}
+                  transition={{ duration: 0.4 }}
+                />
+              </AnimatePresence>
+              {gallery.length > 1 && (
+                <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5">
+                  {gallery.map((_, i) => (
+                    <button
+                      key={i}
+                      aria-label={`Show image ${i + 1}`}
+                      onClick={() => setGalleryIndex(i)}
+                      className={`h-2 rounded-full transition-all ${
+                        i === galleryIndex ? "w-6 bg-primary" : "w-2 bg-background/70 hover:bg-background"
+                      }`}
+                    />
+                  ))}
+                </div>
+              )}
+            </div>
+            {gallery.length > 1 && (
+              <div className="grid grid-cols-4 gap-2">
+                {gallery.map((src, i) => (
+                  <button
+                    key={src}
+                    onClick={() => setGalleryIndex(i)}
+                    className={`overflow-hidden rounded-lg border-2 transition-all ${
+                      i === galleryIndex ? "border-primary" : "border-transparent hover:border-border"
+                    }`}
+                    aria-label={`Thumbnail ${i + 1}`}
+                  >
+                    <img src={src} alt="" className="w-full aspect-square object-cover" />
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
 
           <div className="flex flex-col gap-6">
