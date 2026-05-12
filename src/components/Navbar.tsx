@@ -11,6 +11,7 @@ import { motion, AnimatePresence } from "framer-motion";
 const links = [
   { to: "/", label: "Home" },
   { to: "/shop", label: "Shop" },
+  { to: "/recipes", label: "Recipes" },
   { to: "/our-story", label: "Our Story" },
   { to: "/subscription", label: "Subscribe" },
 ];

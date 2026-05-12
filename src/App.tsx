@@ -19,6 +19,8 @@ import Auth from "./pages/Auth";
 import Chat from "./pages/Chat";
 import AdminDashboard from "./pages/AdminDashboard";
 import NotFound from "./pages/NotFound";
+import Recipes from "./pages/Recipes";
+import RecipeDetail from "./pages/RecipeDetail";
 
 const queryClient = new QueryClient();
 
@@ -36,6 +38,8 @@ const AnimatedRoutes = () => {
         <Route path="/auth" element={<Auth />} />
         <Route path="/chat" element={<Chat />} />
         <Route path="/admin" element={<AdminDashboard />} />
+        <Route path="/recipes" element={<Recipes />} />
+        <Route path="/recipes/:slug" element={<RecipeDetail />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </AnimatePresence>
