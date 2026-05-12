@@ -2,10 +2,25 @@
 
 import { writeFileSync } from "fs";
 import { resolve } from "path";
-import { recipes } from "../src/lib/recipes";
-import { flavours } from "../src/lib/products";
 
 const BASE_URL = "https://snack-smart-shop.lovable.app";
+
+// Kept in sync manually with src/lib/products.ts and src/lib/recipes.ts.
+const flavours = [
+  "Peri-Peri Fiesta",
+  "Himalayan Pink Salt & Lime",
+  "Dark Roast Chaat Masala",
+  "Tangy Tomato Twist",
+  "Cheesy Jalapeño",
+  "Mint Coriander Chutney",
+];
+
+const recipes = [
+  { slug: "peri-peri-mango-salsa", date: "2026-04-02" },
+  { slug: "millet-charcuterie-board", date: "2026-03-21" },
+  { slug: "mint-coriander-smoothie-bowl", date: "2026-03-08" },
+  { slug: "chai-and-chaat-masala-pairing", date: "2026-02-19" },
+];
 
 interface SitemapEntry {
   path: string;
@@ -24,8 +39,8 @@ const entries: SitemapEntry[] = [
   { path: "/subscription", changefreq: "monthly", priority: "0.7", lastmod: today },
   { path: "/recipes", changefreq: "weekly", priority: "0.8", lastmod: today },
   // Per-flavour product pages (filtered via query param)
-  ...flavours.map((f) => ({
-    path: `/product?flavour=${encodeURIComponent(f.name)}`,
+  ...flavours.map((name) => ({
+    path: `/product?flavour=${encodeURIComponent(name)}`,
     changefreq: "weekly" as const,
     priority: "0.7",
     lastmod: today,
