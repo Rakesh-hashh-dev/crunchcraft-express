@@ -32,6 +32,43 @@ const ProductDetail = () => {
 
   const activeImage = gallery[galleryIndex] ?? currentFlavour.image;
 
+  // SEO: title + Product/Offer JSON-LD
+  useEffect(() => {
+    document.title = `${selectedFlavour} — CrunchCraft Popped Millet`;
+    const desc = document.querySelector('meta[name="description"]');
+    if (desc) {
+      desc.setAttribute(
+        "content",
+        `${selectedFlavour} popped millet puffs — gluten-free, baked, FSSAI certified. Available in 30g, 80g and 200g packs.`,
+      );
+    }
+
+    const script = document.createElement("script");
+    script.type = "application/ld+json";
+    script.text = JSON.stringify({
+      "@context": "https://schema.org",
+      "@type": "Product",
+      name: `CrunchCraft ${selectedFlavour} Popped Millet Puffs`,
+      description: `${selectedFlavour} popped millet puffs by CrunchCraft Foods. Baked not fried, gluten-free, FSSAI certified, 100% compostable packaging.`,
+      image: [`${window.location.origin}${currentFlavour.image}`],
+      brand: { "@type": "Brand", name: "CrunchCraft Foods" },
+      category: "Snacks",
+      offers: sizeOptions.map((s) => ({
+        "@type": "Offer",
+        sku: `cc-${selectedFlavour.toLowerCase().replace(/[^a-z0-9]+/g, "-")}-${s.label}`,
+        name: `${selectedFlavour} — ${s.label}`,
+        price: s.price.toFixed(2),
+        priceCurrency: "INR",
+        availability: "https://schema.org/InStock",
+        url: `${window.location.origin}/product?flavour=${encodeURIComponent(selectedFlavour)}&size=${s.label}`,
+      })),
+    });
+    document.head.appendChild(script);
+    return () => {
+      document.head.removeChild(script);
+    };
+  }, [selectedFlavour, currentFlavour.image]);
+
   return (
     <PageTransition>
       <div className="container py-10 md:py-16">
