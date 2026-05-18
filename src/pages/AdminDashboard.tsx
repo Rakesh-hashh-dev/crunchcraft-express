@@ -1053,7 +1053,7 @@ const AdminDashboard = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {filteredProducts.map((p) => {
+                    {paginatedProducts.map((p) => {
                       const isLow = p.stock_quantity <= p.low_stock_threshold;
                       const checked = selectedProductIds.has(p.id);
                       return (
