@@ -199,6 +199,8 @@ const AdminDashboard = () => {
   const [bulkRestockOpen, setBulkRestockOpen] = useState(false);
   const [bulkAddQty, setBulkAddQty] = useState("10");
   const [bulkThreshold, setBulkThreshold] = useState("");
+  const [inventoryPage, setInventoryPage] = useState(1);
+  const [inventoryPageSize, setInventoryPageSize] = useState(25);
 
   const handleStatusChange = useCallback(async (orderId: string, newStatus: string) => {
     setUpdatingOrderId(orderId);
