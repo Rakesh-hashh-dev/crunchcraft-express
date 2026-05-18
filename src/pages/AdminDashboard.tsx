@@ -1120,6 +1120,58 @@ const AdminDashboard = () => {
                   </tbody>
                 </table>
               </div>
+              {filteredProducts.length > 0 && (
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 px-2">
+                  <div className="text-sm text-muted-foreground">
+                    Showing{" "}
+                    <span className="font-medium text-foreground">
+                      {(currentInventoryPage - 1) * inventoryPageSize + 1}
+                    </span>
+                    –
+                    <span className="font-medium text-foreground">
+                      {Math.min(currentInventoryPage * inventoryPageSize, filteredProducts.length)}
+                    </span>{" "}
+                    of <span className="font-medium text-foreground">{filteredProducts.length}</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-2">
+                      <Label htmlFor="page-size" className="text-sm text-muted-foreground whitespace-nowrap">Rows per page</Label>
+                      <Select value={String(inventoryPageSize)} onValueChange={(v) => setInventoryPageSize(Number(v))}>
+                        <SelectTrigger id="page-size" className="h-8 w-[80px] bg-card">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {[10, 25, 50, 100].map((n) => (
+                            <SelectItem key={n} value={String(n)}>{n}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setInventoryPage((p) => Math.max(1, p - 1))}
+                        disabled={currentInventoryPage <= 1}
+                      >
+                        Previous
+                      </Button>
+                      <span className="px-2 text-sm text-muted-foreground">
+                        Page <span className="font-medium text-foreground">{currentInventoryPage}</span> of{" "}
+                        <span className="font-medium text-foreground">{totalInventoryPages}</span>
+                      </span>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setInventoryPage((p) => Math.min(totalInventoryPages, p + 1))}
+                        disabled={currentInventoryPage >= totalInventoryPages}
+                      >
+                        Next
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              )}
             </FadeInSection>
           )}
         </div>
