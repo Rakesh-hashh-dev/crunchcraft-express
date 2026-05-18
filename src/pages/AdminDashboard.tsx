@@ -492,6 +492,15 @@ const AdminDashboard = () => {
     (p) => p.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  const totalInventoryPages = Math.max(1, Math.ceil(filteredProducts.length / inventoryPageSize));
+  const currentInventoryPage = Math.min(inventoryPage, totalInventoryPages);
+  const paginatedProducts = filteredProducts.slice(
+    (currentInventoryPage - 1) * inventoryPageSize,
+    currentInventoryPage * inventoryPageSize
+  );
+
+  useEffect(() => { setInventoryPage(1); }, [searchTerm, inventoryPageSize, tab]);
+
   const lowStockProducts = products.filter((p) => p.stock_quantity <= p.low_stock_threshold && p.is_active);
 
   const tabs = [
