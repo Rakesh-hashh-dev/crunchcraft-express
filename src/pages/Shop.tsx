@@ -38,6 +38,13 @@ const Shop = () => {
     fetchStock();
   }, []);
 
+  useEffect(() => {
+    return injectBreadcrumbJsonLd([
+      { name: "Home", path: "/" },
+      { name: "Shop", path: "/shop" },
+    ]);
+  }, []);
+
   const filtered = activeFilter === "All" ? flavours : flavours.filter((f) => f.name === activeFilter);
 
   return (
