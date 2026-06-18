@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { PageTransition, FadeInSection, StaggerContainer, StaggerItem } from "@/components/AnimationWrappers";
 import { supabase } from "@/integrations/supabase/client";
 import { injectBreadcrumbJsonLd } from "@/lib/breadcrumbs";
+import Breadcrumbs from "@/components/Breadcrumbs";
 
 type StockMap = Record<string, { stock: number; lowThreshold: number }>;
 
@@ -50,6 +51,13 @@ const Shop = () => {
   return (
     <PageTransition>
       <div className="container py-8 md:py-16">
+        <Breadcrumbs
+          className="mb-4"
+          items={[
+            { name: "Home", path: "/" },
+            { name: "Shop", path: "/shop" },
+          ]}
+        />
         <h1 className="text-2xl md:text-4xl mb-2">Shop MilLet's Pop</h1>
         <p className="font-body text-muted-foreground mb-8">Baked millet puffs in bold Indian flavours</p>
 
