@@ -80,6 +80,14 @@ const ProductDetail = () => {
   return (
     <PageTransition>
       <div className="container py-10 md:py-16">
+        <Breadcrumbs
+          className="mb-6"
+          items={[
+            { name: "Home", path: "/" },
+            { name: "Shop", path: "/shop" },
+            { name: selectedFlavour, path: `/product?flavour=${encodeURIComponent(selectedFlavour)}` },
+          ]}
+        />
         <div className="grid gap-10 lg:grid-cols-2">
           <div className="flex flex-col gap-3">
             <div className="overflow-hidden rounded-xl bg-muted relative">
