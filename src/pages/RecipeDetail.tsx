@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { Link, useParams } from "react-router-dom";
 import { getRecipe, recipes } from "@/lib/recipes";
+import { injectBreadcrumbJsonLd } from "@/lib/breadcrumbs";
 import { PageTransition, FadeInSection } from "@/components/AnimationWrappers";
 import { ArrowLeft, Clock, Sparkles } from "lucide-react";
 import NotFound from "./NotFound";
