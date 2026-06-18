@@ -6,6 +6,7 @@ import { ShoppingCart, ShieldCheck } from "lucide-react";
 import { useCart } from "@/hooks/useCart";
 import { PageTransition, FadeInSection } from "@/components/AnimationWrappers";
 import { motion, AnimatePresence } from "framer-motion";
+import { injectBreadcrumbJsonLd } from "@/lib/breadcrumbs";
 
 const ProductDetail = () => {
   const [selectedFlavour, setSelectedFlavour] = useState<Flavour>("Peri-Peri Fiesta");
