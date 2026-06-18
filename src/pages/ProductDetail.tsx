@@ -7,6 +7,7 @@ import { useCart } from "@/hooks/useCart";
 import { PageTransition, FadeInSection } from "@/components/AnimationWrappers";
 import { motion, AnimatePresence } from "framer-motion";
 import { injectBreadcrumbJsonLd } from "@/lib/breadcrumbs";
+import Breadcrumbs from "@/components/Breadcrumbs";
 
 const ProductDetail = () => {
   const [selectedFlavour, setSelectedFlavour] = useState<Flavour>("Peri-Peri Fiesta");
