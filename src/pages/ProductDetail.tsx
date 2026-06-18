@@ -6,6 +6,7 @@ import { ShoppingCart, ShieldCheck } from "lucide-react";
 import { useCart } from "@/hooks/useCart";
 import { PageTransition, FadeInSection } from "@/components/AnimationWrappers";
 import { motion, AnimatePresence } from "framer-motion";
+import { injectBreadcrumbJsonLd } from "@/lib/breadcrumbs";
 
 const ProductDetail = () => {
   const [selectedFlavour, setSelectedFlavour] = useState<Flavour>("Peri-Peri Fiesta");
@@ -64,8 +65,14 @@ const ProductDetail = () => {
       })),
     });
     document.head.appendChild(script);
+    const cleanupBreadcrumb = injectBreadcrumbJsonLd([
+      { name: "Home", path: "/" },
+      { name: "Shop", path: "/shop" },
+      { name: selectedFlavour, path: `/product?flavour=${encodeURIComponent(selectedFlavour)}` },
+    ]);
     return () => {
       document.head.removeChild(script);
+      cleanupBreadcrumb();
     };
   }, [selectedFlavour, currentFlavour.image]);
 

@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { Link, useParams } from "react-router-dom";
 import { getRecipe, recipes } from "@/lib/recipes";
+import { injectBreadcrumbJsonLd } from "@/lib/breadcrumbs";
 import { PageTransition, FadeInSection } from "@/components/AnimationWrappers";
 import { ArrowLeft, Clock, Sparkles } from "lucide-react";
 import NotFound from "./NotFound";
@@ -31,8 +32,14 @@ const RecipeDetail = () => {
       keywords: recipe.tags.join(", "),
     });
     document.head.appendChild(script);
+    const cleanupBreadcrumb = injectBreadcrumbJsonLd([
+      { name: "Home", path: "/" },
+      { name: "Recipes", path: "/recipes" },
+      { name: recipe.title, path: `/recipes/${recipe.slug}` },
+    ]);
     return () => {
       document.head.removeChild(script);
+      cleanupBreadcrumb();
     };
   }, [recipe]);
 

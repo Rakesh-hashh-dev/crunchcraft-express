@@ -6,6 +6,7 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { PageTransition, FadeInSection, StaggerContainer, StaggerItem } from "@/components/AnimationWrappers";
 import { supabase } from "@/integrations/supabase/client";
+import { injectBreadcrumbJsonLd } from "@/lib/breadcrumbs";
 
 type StockMap = Record<string, { stock: number; lowThreshold: number }>;
 
@@ -35,6 +36,13 @@ const Shop = () => {
       setStockMap(map);
     };
     fetchStock();
+  }, []);
+
+  useEffect(() => {
+    return injectBreadcrumbJsonLd([
+      { name: "Home", path: "/" },
+      { name: "Shop", path: "/shop" },
+    ]);
   }, []);
 
   const filtered = activeFilter === "All" ? flavours : flavours.filter((f) => f.name === activeFilter);
