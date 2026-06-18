@@ -32,8 +32,14 @@ const RecipeDetail = () => {
       keywords: recipe.tags.join(", "),
     });
     document.head.appendChild(script);
+    const cleanupBreadcrumb = injectBreadcrumbJsonLd([
+      { name: "Home", path: "/" },
+      { name: "Recipes", path: "/recipes" },
+      { name: recipe.title, path: `/recipes/${recipe.slug}` },
+    ]);
     return () => {
       document.head.removeChild(script);
+      cleanupBreadcrumb();
     };
   }, [recipe]);
 
