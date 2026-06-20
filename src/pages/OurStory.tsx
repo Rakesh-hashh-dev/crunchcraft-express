@@ -1,7 +1,15 @@
+import { useEffect } from "react";
 import milletFarmImg from "@/assets/millet-farm.jpg";
 import { Leaf, Award, Recycle, Heart } from "lucide-react";
 import { PageTransition, FadeInSection, StaggerContainer, StaggerItem } from "@/components/AnimationWrappers";
 import { motion } from "framer-motion";
+import Breadcrumbs from "@/components/Breadcrumbs";
+import { injectBreadcrumbJsonLd } from "@/lib/breadcrumbs";
+
+const crumbs = [
+  { name: "Home", path: "/" },
+  { name: "Our Story", path: "/our-story" },
+];
 
 const values = [
   { icon: Leaf, title: "Sustainably Sourced", desc: "Our millets come from small farms across Rajasthan and Karnataka, supporting 200+ farming families." },
