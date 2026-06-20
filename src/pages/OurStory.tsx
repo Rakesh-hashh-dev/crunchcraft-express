@@ -70,6 +70,7 @@ const OurStory = () => {
       </section>
     </div>
   </PageTransition>
-);
+  );
+};
 
 export default OurStory;
