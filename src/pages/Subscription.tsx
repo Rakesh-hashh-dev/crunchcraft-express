@@ -27,9 +27,14 @@ const plans = [
   { name: "Mega Box", items: "6 × 200g pouches", price: 530, original: 660 },
 ];
 
-const Subscription = () => (
+const Subscription = () => {
+  useEffect(() => injectBreadcrumbJsonLd(subCrumbs), []);
+  return (
   <PageTransition>
     <div className="flex flex-col">
+      <div className="container pt-6">
+        <Breadcrumbs items={subCrumbs} />
+      </div>
       <section className="bg-primary text-primary-foreground py-16 md:py-24 text-center">
         <div className="container max-w-2xl">
           <Badge className="bg-secondary text-secondary-foreground mb-6">Save 15%</Badge>
