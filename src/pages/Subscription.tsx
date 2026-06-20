@@ -100,6 +100,7 @@ const Subscription = () => {
       </FadeInSection>
     </div>
   </PageTransition>
-);
+  );
+};
 
 export default Subscription;
