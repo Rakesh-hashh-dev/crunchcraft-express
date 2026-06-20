@@ -75,6 +75,7 @@ const Checkout = () => {
   return (
     <PageTransition>
       <div className="container py-10 md:py-16 max-w-3xl">
+        <Breadcrumbs items={checkoutCrumbs} className="mb-6" />
         <h1 className="text-3xl mb-8">Checkout</h1>
 
         <div className="grid gap-10 lg:grid-cols-5">
