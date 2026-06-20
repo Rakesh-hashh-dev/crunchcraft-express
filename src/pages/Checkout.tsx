@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,6 +12,13 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { PageTransition, FadeInSection } from "@/components/AnimationWrappers";
 import { motion, AnimatePresence } from "framer-motion";
+import Breadcrumbs from "@/components/Breadcrumbs";
+import { injectBreadcrumbJsonLd } from "@/lib/breadcrumbs";
+
+const checkoutCrumbs = [
+  { name: "Home", path: "/" },
+  { name: "Checkout", path: "/checkout" },
+];
 
 const paymentMethods = [
   { value: "razorpay", label: "Razorpay (Cards/NetBanking)", icon: CreditCard },
