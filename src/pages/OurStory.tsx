@@ -18,9 +18,14 @@ const values = [
   { icon: Heart, title: "Community First", desc: "5% of profits go to millet-farmer cooperatives for fair pricing and agricultural training." },
 ];
 
-const OurStory = () => (
+const OurStory = () => {
+  useEffect(() => injectBreadcrumbJsonLd(crumbs), []);
+  return (
   <PageTransition>
     <div className="flex flex-col">
+      <div className="container pt-6">
+        <Breadcrumbs items={crumbs} />
+      </div>
       <section className="relative h-[50vh] md:h-[60vh] flex items-end overflow-hidden">
         <motion.img
           src={milletFarmImg} alt="Millet farm at sunset" className="absolute inset-0 h-full w-full object-cover"
