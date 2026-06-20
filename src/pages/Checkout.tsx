@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,6 +12,13 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { PageTransition, FadeInSection } from "@/components/AnimationWrappers";
 import { motion, AnimatePresence } from "framer-motion";
+import Breadcrumbs from "@/components/Breadcrumbs";
+import { injectBreadcrumbJsonLd } from "@/lib/breadcrumbs";
+
+const checkoutCrumbs = [
+  { name: "Home", path: "/" },
+  { name: "Checkout", path: "/checkout" },
+];
 
 const paymentMethods = [
   { value: "razorpay", label: "Razorpay (Cards/NetBanking)", icon: CreditCard },
@@ -26,6 +33,9 @@ const Checkout = () => {
   const { items, total, removeItem, updateQuantity, clearCart } = useCart();
   const { user } = useAuth();
   const navigate = useNavigate();
+
+  useEffect(() => injectBreadcrumbJsonLd(checkoutCrumbs), []);
+
 
   const handlePlaceOrder = async () => {
     if (!user) { toast.error("Please sign in first"); navigate("/auth"); return; }
@@ -65,6 +75,7 @@ const Checkout = () => {
   return (
     <PageTransition>
       <div className="container py-10 md:py-16 max-w-3xl">
+        <Breadcrumbs items={checkoutCrumbs} className="mb-6" />
         <h1 className="text-3xl mb-8">Checkout</h1>
 
         <div className="grid gap-10 lg:grid-cols-5">

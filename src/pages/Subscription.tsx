@@ -1,8 +1,16 @@
+import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Gift, Pause, RotateCcw, Star, Truck, Percent } from "lucide-react";
 import { toast } from "sonner";
 import { PageTransition, FadeInSection, StaggerContainer, StaggerItem } from "@/components/AnimationWrappers";
+import Breadcrumbs from "@/components/Breadcrumbs";
+import { injectBreadcrumbJsonLd } from "@/lib/breadcrumbs";
+
+const subCrumbs = [
+  { name: "Home", path: "/" },
+  { name: "Crunch Club", path: "/subscription" },
+];
 
 const perks = [
   { icon: Percent, title: "15% Off Every Box", desc: "Subscribers always pay less than retail." },
@@ -19,9 +27,14 @@ const plans = [
   { name: "Mega Box", items: "6 × 200g pouches", price: 530, original: 660 },
 ];
 
-const Subscription = () => (
+const Subscription = () => {
+  useEffect(() => injectBreadcrumbJsonLd(subCrumbs), []);
+  return (
   <PageTransition>
     <div className="flex flex-col">
+      <div className="container pt-6">
+        <Breadcrumbs items={subCrumbs} />
+      </div>
       <section className="bg-primary text-primary-foreground py-16 md:py-24 text-center">
         <div className="container max-w-2xl">
           <Badge className="bg-secondary text-secondary-foreground mb-6">Save 15%</Badge>
@@ -87,6 +100,7 @@ const Subscription = () => (
       </FadeInSection>
     </div>
   </PageTransition>
-);
+  );
+};
 
 export default Subscription;

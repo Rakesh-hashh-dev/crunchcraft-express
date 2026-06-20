@@ -1,7 +1,15 @@
+import { useEffect } from "react";
 import milletFarmImg from "@/assets/millet-farm.jpg";
 import { Leaf, Award, Recycle, Heart } from "lucide-react";
 import { PageTransition, FadeInSection, StaggerContainer, StaggerItem } from "@/components/AnimationWrappers";
 import { motion } from "framer-motion";
+import Breadcrumbs from "@/components/Breadcrumbs";
+import { injectBreadcrumbJsonLd } from "@/lib/breadcrumbs";
+
+const crumbs = [
+  { name: "Home", path: "/" },
+  { name: "Our Story", path: "/our-story" },
+];
 
 const values = [
   { icon: Leaf, title: "Sustainably Sourced", desc: "Our millets come from small farms across Rajasthan and Karnataka, supporting 200+ farming families." },
@@ -10,9 +18,14 @@ const values = [
   { icon: Heart, title: "Community First", desc: "5% of profits go to millet-farmer cooperatives for fair pricing and agricultural training." },
 ];
 
-const OurStory = () => (
+const OurStory = () => {
+  useEffect(() => injectBreadcrumbJsonLd(crumbs), []);
+  return (
   <PageTransition>
     <div className="flex flex-col">
+      <div className="container pt-6">
+        <Breadcrumbs items={crumbs} />
+      </div>
       <section className="relative h-[50vh] md:h-[60vh] flex items-end overflow-hidden">
         <motion.img
           src={milletFarmImg} alt="Millet farm at sunset" className="absolute inset-0 h-full w-full object-cover"
@@ -57,6 +70,7 @@ const OurStory = () => (
       </section>
     </div>
   </PageTransition>
-);
+  );
+};
 
 export default OurStory;
