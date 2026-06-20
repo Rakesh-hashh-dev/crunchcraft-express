@@ -34,6 +34,9 @@ const Checkout = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
 
+  useEffect(() => injectBreadcrumbJsonLd(checkoutCrumbs), []);
+
+
   const handlePlaceOrder = async () => {
     if (!user) { toast.error("Please sign in first"); navigate("/auth"); return; }
     if (!form.name || !form.address || !form.city || !form.pin) { toast.error("Please fill all required fields"); return; }
