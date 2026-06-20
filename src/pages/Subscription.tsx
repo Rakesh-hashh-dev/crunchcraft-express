@@ -1,8 +1,16 @@
+import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Gift, Pause, RotateCcw, Star, Truck, Percent } from "lucide-react";
 import { toast } from "sonner";
 import { PageTransition, FadeInSection, StaggerContainer, StaggerItem } from "@/components/AnimationWrappers";
+import Breadcrumbs from "@/components/Breadcrumbs";
+import { injectBreadcrumbJsonLd } from "@/lib/breadcrumbs";
+
+const subCrumbs = [
+  { name: "Home", path: "/" },
+  { name: "Crunch Club", path: "/subscription" },
+];
 
 const perks = [
   { icon: Percent, title: "15% Off Every Box", desc: "Subscribers always pay less than retail." },
