@@ -69,7 +69,7 @@ const Checkout = () => {
     await clearCart();
     setPlacing(false);
     toast.success("Order placed! 🎉 WhatsApp confirmation sent.");
-    navigate("/");
+    navigate(`/order/${order.id}`);
   };
 
   return (

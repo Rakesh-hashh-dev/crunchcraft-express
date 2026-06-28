@@ -21,6 +21,7 @@ import AdminDashboard from "./pages/AdminDashboard";
 import NotFound from "./pages/NotFound";
 import Recipes from "./pages/Recipes";
 import RecipeDetail from "./pages/RecipeDetail";
+import OrderStatus from "./pages/OrderStatus";
 
 const queryClient = new QueryClient();
 
@@ -40,6 +41,7 @@ const AnimatedRoutes = () => {
         <Route path="/admin" element={<AdminDashboard />} />
         <Route path="/recipes" element={<Recipes />} />
         <Route path="/recipes/:slug" element={<RecipeDetail />} />
+        <Route path="/order/:id" element={<OrderStatus />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </AnimatePresence>
