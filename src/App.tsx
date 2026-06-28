@@ -22,6 +22,7 @@ import NotFound from "./pages/NotFound";
 import Recipes from "./pages/Recipes";
 import RecipeDetail from "./pages/RecipeDetail";
 import OrderStatus from "./pages/OrderStatus";
+import AdminOrderTracker from "./pages/AdminOrderTracker";
 
 const queryClient = new QueryClient();
 
@@ -42,6 +43,7 @@ const AnimatedRoutes = () => {
         <Route path="/recipes" element={<Recipes />} />
         <Route path="/recipes/:slug" element={<RecipeDetail />} />
         <Route path="/order/:id" element={<OrderStatus />} />
+        <Route path="/admin/orders/:id" element={<AdminOrderTracker />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </AnimatePresence>
