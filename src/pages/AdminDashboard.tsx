@@ -22,7 +22,7 @@ import {
 import {
   ShoppingBag, Users, BarChart3, Package, ArrowLeft, Search,
   TrendingUp, IndianRupee, Clock, Plus, Trash2, Edit, UserPlus,
-  PackageOpen, AlertTriangle
+  PackageOpen, AlertTriangle, Truck
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
@@ -798,6 +798,9 @@ const AdminDashboard = () => {
                         <td className="p-4 text-muted-foreground">{new Date(o.created_at).toLocaleDateString()}</td>
                         <td className="p-4">
                           <div className="flex gap-1">
+                            <Button asChild variant="ghost" size="icon" className="h-8 w-8" title="Track shipment">
+                              <Link to={`/admin/orders/${o.id}`}><Truck className="h-3.5 w-3.5" /></Link>
+                            </Button>
                             <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => { setEditOrder(o); setEditOrderOpen(true); }}>
                               <Edit className="h-3.5 w-3.5" />
                             </Button>
