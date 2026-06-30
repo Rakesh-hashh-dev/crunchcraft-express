@@ -191,9 +191,27 @@ const AdminOrderTracker = () => {
               {new Date(order.created_at).toLocaleString()}
             </p>
           </div>
-          <span className="inline-flex items-center gap-2 rounded-full bg-primary/10 text-primary px-3 py-1 font-body text-xs uppercase tracking-wide">
-            <Radio className="h-3 w-3" /> Realtime
-          </span>
+          <div className="flex items-center gap-2 flex-wrap">
+            <span
+              className={`inline-flex items-center gap-2 rounded-full px-3 py-1 font-body text-xs uppercase tracking-wide ${
+                channelStatus === "SUBSCRIBED"
+                  ? "bg-primary/10 text-primary"
+                  : "bg-muted text-muted-foreground"
+              }`}
+              title={`Channel: ${channelStatus}`}
+            >
+              <Radio className={`h-3 w-3 ${channelStatus === "SUBSCRIBED" ? "animate-pulse" : ""}`} />
+              {channelStatus === "SUBSCRIBED" ? "Live" : "Offline"}
+            </span>
+            <Button variant="outline" size="sm" onClick={() => refetch(true)} disabled={refreshing}>
+              <RefreshCw className={`h-3.5 w-3.5 mr-1 ${refreshing ? "animate-spin" : ""}`} />
+              Refresh
+            </Button>
+            <Button variant="outline" size="sm" onClick={reconnect} disabled={refreshing}>
+              <Plug className="h-3.5 w-3.5 mr-1" />
+              Reconnect
+            </Button>
+          </div>
         </div>
 
         <FadeInSection>
