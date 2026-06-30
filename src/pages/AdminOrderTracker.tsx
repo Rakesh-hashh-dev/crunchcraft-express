@@ -19,6 +19,8 @@ import {
   MapPin,
   ArrowLeft,
   Radio,
+  RefreshCw,
+  Plug,
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
@@ -87,6 +89,22 @@ const AdminOrderTracker = () => {
     if (!isAdmin) { navigate("/"); return; }
   }, [user, isAdmin, authLoading, adminLoading, navigate]);
 
+  const [refreshing, setRefreshing] = useState(false);
+  const [reconnectKey, setReconnectKey] = useState(0);
+  const [channelStatus, setChannelStatus] = useState<string>("connecting");
+
+  const refetch = async (showToast = false) => {
+    if (!id) return;
+    setRefreshing(true);
+    const { data: o, error: oErr } = await supabase.from("orders").select("*").eq("id", id).maybeSingle();
+    const { data: it, error: iErr } = await supabase.from("order_items").select("*").eq("order_id", id);
+    setRefreshing(false);
+    if (oErr || iErr) { toast.error("Failed to refresh order"); return; }
+    setOrder(o as OrderRow | null);
+    setItems((it ?? []) as OrderItemRow[]);
+    if (showToast) toast.success("Order resynced");
+  };
+
   useEffect(() => {
     if (!id || !isAdmin) return;
     let cancelled = false;
@@ -102,19 +120,27 @@ const AdminOrderTracker = () => {
     load();
 
     const channel = supabase
-      .channel(`admin-order-${id}`)
+      .channel(`admin-order-${id}-${reconnectKey}`)
       .on(
         "postgres_changes",
         { event: "UPDATE", schema: "public", table: "orders", filter: `id=eq.${id}` },
         (payload) => setOrder(payload.new as OrderRow)
       )
-      .subscribe();
+      .subscribe((status) => setChannelStatus(status));
 
     return () => {
       cancelled = true;
       supabase.removeChannel(channel);
     };
-  }, [id, isAdmin]);
+  }, [id, isAdmin, reconnectKey]);
+
+  const reconnect = async () => {
+    setChannelStatus("connecting");
+    setReconnectKey((k) => k + 1);
+    await refetch(false);
+    toast.success("Reconnected to live updates");
+  };
+
 
   const setStage = async (key: string) => {
     if (!order) return;
@@ -167,9 +193,27 @@ const AdminOrderTracker = () => {
               {new Date(order.created_at).toLocaleString()}
             </p>
           </div>
-          <span className="inline-flex items-center gap-2 rounded-full bg-primary/10 text-primary px-3 py-1 font-body text-xs uppercase tracking-wide">
-            <Radio className="h-3 w-3" /> Realtime
-          </span>
+          <div className="flex items-center gap-2 flex-wrap">
+            <span
+              className={`inline-flex items-center gap-2 rounded-full px-3 py-1 font-body text-xs uppercase tracking-wide ${
+                channelStatus === "SUBSCRIBED"
+                  ? "bg-primary/10 text-primary"
+                  : "bg-muted text-muted-foreground"
+              }`}
+              title={`Channel: ${channelStatus}`}
+            >
+              <Radio className={`h-3 w-3 ${channelStatus === "SUBSCRIBED" ? "animate-pulse" : ""}`} />
+              {channelStatus === "SUBSCRIBED" ? "Live" : "Offline"}
+            </span>
+            <Button variant="outline" size="sm" onClick={() => refetch(true)} disabled={refreshing}>
+              <RefreshCw className={`h-3.5 w-3.5 mr-1 ${refreshing ? "animate-spin" : ""}`} />
+              Refresh
+            </Button>
+            <Button variant="outline" size="sm" onClick={reconnect} disabled={refreshing}>
+              <Plug className="h-3.5 w-3.5 mr-1" />
+              Reconnect
+            </Button>
+          </div>
         </div>
 
         <FadeInSection>
