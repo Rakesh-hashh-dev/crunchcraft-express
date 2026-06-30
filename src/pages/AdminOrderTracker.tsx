@@ -87,6 +87,22 @@ const AdminOrderTracker = () => {
     if (!isAdmin) { navigate("/"); return; }
   }, [user, isAdmin, authLoading, adminLoading, navigate]);
 
+  const [refreshing, setRefreshing] = useState(false);
+  const [reconnectKey, setReconnectKey] = useState(0);
+  const [channelStatus, setChannelStatus] = useState<string>("connecting");
+
+  const refetch = async (showToast = false) => {
+    if (!id) return;
+    setRefreshing(true);
+    const { data: o, error: oErr } = await supabase.from("orders").select("*").eq("id", id).maybeSingle();
+    const { data: it, error: iErr } = await supabase.from("order_items").select("*").eq("order_id", id);
+    setRefreshing(false);
+    if (oErr || iErr) { toast.error("Failed to refresh order"); return; }
+    setOrder(o as OrderRow | null);
+    setItems((it ?? []) as OrderItemRow[]);
+    if (showToast) toast.success("Order resynced");
+  };
+
   useEffect(() => {
     if (!id || !isAdmin) return;
     let cancelled = false;
@@ -102,19 +118,27 @@ const AdminOrderTracker = () => {
     load();
 
     const channel = supabase
-      .channel(`admin-order-${id}`)
+      .channel(`admin-order-${id}-${reconnectKey}`)
       .on(
         "postgres_changes",
         { event: "UPDATE", schema: "public", table: "orders", filter: `id=eq.${id}` },
         (payload) => setOrder(payload.new as OrderRow)
       )
-      .subscribe();
+      .subscribe((status) => setChannelStatus(status));
 
     return () => {
       cancelled = true;
       supabase.removeChannel(channel);
     };
-  }, [id, isAdmin]);
+  }, [id, isAdmin, reconnectKey]);
+
+  const reconnect = async () => {
+    setChannelStatus("connecting");
+    setReconnectKey((k) => k + 1);
+    await refetch(false);
+    toast.success("Reconnected to live updates");
+  };
+
 
   const setStage = async (key: string) => {
     if (!order) return;
