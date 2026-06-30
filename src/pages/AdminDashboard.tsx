@@ -782,7 +782,11 @@ const AdminDashboard = () => {
                   <tbody>
                     {filteredOrders.map((o) => (
                       <tr key={o.id} className="border-b last:border-0 hover:bg-muted/50 transition-colors">
-                        <td className="p-4 font-mono text-xs">{o.id.slice(0, 8)}...</td>
+                        <td className="p-4 font-mono text-xs">
+                          <Link to={`/admin/orders/${o.id}`} className="text-primary hover:underline" title="Track shipment">
+                            {o.id.slice(0, 8)}...
+                          </Link>
+                        </td>
                         <td className="p-4">{o.shipping_name}</td>
                         <td className="p-4">{o.shipping_city}</td>
                         <td className="p-4 capitalize">{o.payment_method}</td>
