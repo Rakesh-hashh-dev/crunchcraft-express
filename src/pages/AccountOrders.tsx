@@ -8,7 +8,7 @@ import { injectBreadcrumbJsonLd } from "@/lib/breadcrumbs";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
-import { Package, ChevronRight, ShoppingBag } from "lucide-react";
+import { Package, ChevronRight, ShoppingBag, Truck } from "lucide-react";
 
 interface OrderRow {
   id: string;
@@ -154,6 +154,24 @@ const AccountOrders = () => {
                         </div>
                         <ChevronRight className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors" />
                       </div>
+                    </div>
+                    <div className="mt-4 flex justify-end">
+                      <Button
+                        asChild
+                        size="sm"
+                        variant="secondary"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <a
+                          href={`/order/${o.id}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <Truck className="h-4 w-4 mr-1.5" />
+                          Track this order
+                        </a>
+                      </Button>
                     </div>
                   </Link>
                 </FadeInSection>
