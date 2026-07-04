@@ -207,6 +207,7 @@ const AdminDashboard = () => {
     const { error } = await supabase.from("orders").update({ status: newStatus }).eq("id", orderId);
     if (error) { toast.error("Failed to update status"); }
     else {
+      await (supabase as any).from("order_events").insert({ order_id: orderId, status: newStatus });
       setOrders((prev) => prev.map((o) => o.id === orderId ? { ...o, status: newStatus } : o));
       toast.success(`Order updated to "${newStatus}"`);
     }
