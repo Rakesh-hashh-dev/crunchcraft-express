@@ -144,10 +144,17 @@ const AdminOrderTracker = () => {
 
   const setStage = async (key: string) => {
     if (!order) return;
+    const note = window.prompt(`Optional note for "${key}" (visible to customer):`, "") ?? "";
     setSaving(key);
     const { error } = await supabase.from("orders").update({ status: key }).eq("id", order.id);
+    if (error) { setSaving(null); toast.error("Failed to update stage"); return; }
+    await (supabase as any).from("order_events").insert({
+      order_id: order.id,
+      status: key,
+      note: note.trim() || null,
+      created_by: user?.id ?? null,
+    });
     setSaving(null);
-    if (error) { toast.error("Failed to update stage"); return; }
     toast.success(`Stage set to ${key}`);
     setOrder({ ...order, status: key });
   };

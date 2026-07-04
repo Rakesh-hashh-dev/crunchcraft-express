@@ -43,6 +43,14 @@ interface OrderItemRow {
   unit_price: number;
 }
 
+interface OrderEventRow {
+  id: string;
+  order_id: string;
+  status: string;
+  note: string | null;
+  created_at: string;
+}
+
 const STAGES = [
   { key: "pending", label: "Order Placed", icon: CheckCircle2, blurb: "We've received your order." },
   { key: "confirmed", label: "Payment Confirmed", icon: CreditCard, blurb: "Razorpay confirmation received." },
@@ -61,6 +69,7 @@ const OrderStatus = () => {
   const { user } = useAuth();
   const [order, setOrder] = useState<OrderRow | null>(null);
   const [items, setItems] = useState<OrderItemRow[]>([]);
+  const [events, setEvents] = useState<OrderEventRow[]>([]);
   const [loading, setLoading] = useState(true);
 
   const crumbs = [
@@ -77,9 +86,15 @@ const OrderStatus = () => {
     const load = async () => {
       const { data: o } = await supabase.from("orders").select("*").eq("id", id).maybeSingle();
       const { data: it } = await supabase.from("order_items").select("*").eq("order_id", id);
+      const { data: ev } = await (supabase as any)
+        .from("order_events")
+        .select("*")
+        .eq("order_id", id)
+        .order("created_at", { ascending: true });
       if (cancelled) return;
       setOrder(o as OrderRow | null);
       setItems((it ?? []) as OrderItemRow[]);
+      setEvents((ev ?? []) as OrderEventRow[]);
       setLoading(false);
     };
     load();
@@ -97,6 +112,13 @@ const OrderStatus = () => {
             }
             return updated;
           });
+        }
+      )
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "order_events", filter: `order_id=eq.${id}` },
+        (payload) => {
+          setEvents((prev) => [...prev, payload.new as OrderEventRow]);
         }
       )
       .subscribe();
@@ -159,6 +181,8 @@ const OrderStatus = () => {
                 const reached = i <= current;
                 const isCurrent = i === current;
                 const Icon = reached ? s.icon : CircleDashed;
+                const stageEvents = events.filter((e) => e.status.toLowerCase() === s.key);
+                const firstAt = stageEvents[0]?.created_at;
                 return (
                   <li key={s.key} className="flex gap-4 items-start">
                     <div className="relative flex flex-col items-center">
@@ -177,12 +201,31 @@ const OrderStatus = () => {
                         <div className={`w-0.5 flex-1 mt-1 min-h-8 ${i < current ? "bg-primary" : "bg-border"}`} />
                       )}
                     </div>
-                    <div className="pb-4">
-                      <p className={`font-heading text-sm ${reached ? "" : "text-muted-foreground"}`}>
-                        {s.label}
-                        {isCurrent && <span className="ml-2 text-xs text-primary font-body normal-case">— current</span>}
-                      </p>
+                    <div className="pb-4 flex-1">
+                      <div className="flex items-baseline justify-between gap-3 flex-wrap">
+                        <p className={`font-heading text-sm ${reached ? "" : "text-muted-foreground"}`}>
+                          {s.label}
+                          {isCurrent && <span className="ml-2 text-xs text-primary font-body normal-case">— current</span>}
+                        </p>
+                        {firstAt && (
+                          <time className="font-body text-xs text-muted-foreground tabular-nums">
+                            {new Date(firstAt).toLocaleString(undefined, { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}
+                          </time>
+                        )}
+                      </div>
                       <p className="font-body text-xs text-muted-foreground mt-0.5">{s.blurb}</p>
+                      {stageEvents.map((e) => (
+                        e.note ? (
+                          <p key={e.id} className="font-body text-xs mt-2 rounded-md bg-muted/50 border border-border/60 px-2.5 py-1.5 text-foreground/80">
+                            <span className="font-bold text-foreground">Note:</span> {e.note}
+                          </p>
+                        ) : null
+                      ))}
+                      {stageEvents.length > 1 && (
+                        <p className="font-body text-[11px] text-muted-foreground mt-1">
+                          Last updated {new Date(stageEvents[stageEvents.length - 1].created_at).toLocaleString()}
+                        </p>
+                      )}
                     </div>
                   </li>
                 );
