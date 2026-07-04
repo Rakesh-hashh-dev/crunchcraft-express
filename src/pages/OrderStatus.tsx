@@ -43,6 +43,14 @@ interface OrderItemRow {
   unit_price: number;
 }
 
+interface OrderEventRow {
+  id: string;
+  order_id: string;
+  status: string;
+  note: string | null;
+  created_at: string;
+}
+
 const STAGES = [
   { key: "pending", label: "Order Placed", icon: CheckCircle2, blurb: "We've received your order." },
   { key: "confirmed", label: "Payment Confirmed", icon: CreditCard, blurb: "Razorpay confirmation received." },
