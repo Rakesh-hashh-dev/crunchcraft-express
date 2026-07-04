@@ -181,6 +181,8 @@ const OrderStatus = () => {
                 const reached = i <= current;
                 const isCurrent = i === current;
                 const Icon = reached ? s.icon : CircleDashed;
+                const stageEvents = events.filter((e) => e.status.toLowerCase() === s.key);
+                const firstAt = stageEvents[0]?.created_at;
                 return (
                   <li key={s.key} className="flex gap-4 items-start">
                     <div className="relative flex flex-col items-center">
@@ -199,12 +201,31 @@ const OrderStatus = () => {
                         <div className={`w-0.5 flex-1 mt-1 min-h-8 ${i < current ? "bg-primary" : "bg-border"}`} />
                       )}
                     </div>
-                    <div className="pb-4">
-                      <p className={`font-heading text-sm ${reached ? "" : "text-muted-foreground"}`}>
-                        {s.label}
-                        {isCurrent && <span className="ml-2 text-xs text-primary font-body normal-case">— current</span>}
-                      </p>
+                    <div className="pb-4 flex-1">
+                      <div className="flex items-baseline justify-between gap-3 flex-wrap">
+                        <p className={`font-heading text-sm ${reached ? "" : "text-muted-foreground"}`}>
+                          {s.label}
+                          {isCurrent && <span className="ml-2 text-xs text-primary font-body normal-case">— current</span>}
+                        </p>
+                        {firstAt && (
+                          <time className="font-body text-xs text-muted-foreground tabular-nums">
+                            {new Date(firstAt).toLocaleString(undefined, { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}
+                          </time>
+                        )}
+                      </div>
                       <p className="font-body text-xs text-muted-foreground mt-0.5">{s.blurb}</p>
+                      {stageEvents.map((e) => (
+                        e.note ? (
+                          <p key={e.id} className="font-body text-xs mt-2 rounded-md bg-muted/50 border border-border/60 px-2.5 py-1.5 text-foreground/80">
+                            <span className="font-bold text-foreground">Note:</span> {e.note}
+                          </p>
+                        ) : null
+                      ))}
+                      {stageEvents.length > 1 && (
+                        <p className="font-body text-[11px] text-muted-foreground mt-1">
+                          Last updated {new Date(stageEvents[stageEvents.length - 1].created_at).toLocaleString()}
+                        </p>
+                      )}
                     </div>
                   </li>
                 );
