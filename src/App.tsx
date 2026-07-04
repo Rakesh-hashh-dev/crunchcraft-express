@@ -23,6 +23,7 @@ import Recipes from "./pages/Recipes";
 import RecipeDetail from "./pages/RecipeDetail";
 import OrderStatus from "./pages/OrderStatus";
 import AdminOrderTracker from "./pages/AdminOrderTracker";
+import AccountOrders from "./pages/AccountOrders";
 
 const queryClient = new QueryClient();
 
