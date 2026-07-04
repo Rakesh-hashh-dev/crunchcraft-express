@@ -69,6 +69,7 @@ const OrderStatus = () => {
   const { user } = useAuth();
   const [order, setOrder] = useState<OrderRow | null>(null);
   const [items, setItems] = useState<OrderItemRow[]>([]);
+  const [events, setEvents] = useState<OrderEventRow[]>([]);
   const [loading, setLoading] = useState(true);
 
   const crumbs = [
@@ -85,9 +86,15 @@ const OrderStatus = () => {
     const load = async () => {
       const { data: o } = await supabase.from("orders").select("*").eq("id", id).maybeSingle();
       const { data: it } = await supabase.from("order_items").select("*").eq("order_id", id);
+      const { data: ev } = await (supabase as any)
+        .from("order_events")
+        .select("*")
+        .eq("order_id", id)
+        .order("created_at", { ascending: true });
       if (cancelled) return;
       setOrder(o as OrderRow | null);
       setItems((it ?? []) as OrderItemRow[]);
+      setEvents((ev ?? []) as OrderEventRow[]);
       setLoading(false);
     };
     load();
@@ -105,6 +112,13 @@ const OrderStatus = () => {
             }
             return updated;
           });
+        }
+      )
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "order_events", filter: `order_id=eq.${id}` },
+        (payload) => {
+          setEvents((prev) => [...prev, payload.new as OrderEventRow]);
         }
       )
       .subscribe();
