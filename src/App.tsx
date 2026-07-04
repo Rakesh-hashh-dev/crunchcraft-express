@@ -44,6 +44,7 @@ const AnimatedRoutes = () => {
         <Route path="/recipes" element={<Recipes />} />
         <Route path="/recipes/:slug" element={<RecipeDetail />} />
         <Route path="/order/:id" element={<OrderStatus />} />
+        <Route path="/account/orders" element={<AccountOrders />} />
         <Route path="/admin/orders/:id" element={<AdminOrderTracker />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
