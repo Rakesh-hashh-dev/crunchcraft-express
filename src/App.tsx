@@ -24,6 +24,7 @@ import RecipeDetail from "./pages/RecipeDetail";
 import OrderStatus from "./pages/OrderStatus";
 import AdminOrderTracker from "./pages/AdminOrderTracker";
 import AccountOrders from "./pages/AccountOrders";
+import ResetPassword from "./pages/ResetPassword";
 
 const queryClient = new QueryClient();
 
