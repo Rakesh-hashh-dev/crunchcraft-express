@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Menu, X, ShoppingBag, User, LogOut, Settings, Shield, ChevronDown } from "lucide-react";
+import { Menu, X, ShoppingBag, User, LogOut, Settings, Shield, ChevronDown, KeyRound } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { useAdmin } from "@/hooks/useAdmin";
@@ -123,6 +123,13 @@ const Navbar = () => {
                     >
                       <Settings className="h-4 w-4 text-muted-foreground" /> Edit Profile
                     </Link>
+                    <Link
+                      to="/account/security"
+                      onClick={() => setProfileOpen(false)}
+                      className="flex items-center gap-2 px-4 py-2.5 text-sm font-body text-foreground hover:bg-muted transition-colors"
+                    >
+                      <KeyRound className="h-4 w-4 text-muted-foreground" /> Change Password
+                    </Link>
                     {isAdmin && (
                       <Link
                         to="/admin"
@@ -216,6 +223,13 @@ const Navbar = () => {
                     className="font-body text-sm py-2 px-3 rounded-md text-foreground hover:bg-muted transition-colors flex items-center gap-2"
                   >
                     <Settings className="h-4 w-4" /> Edit Profile
+                  </Link>
+                  <Link
+                    to="/account/security"
+                    onClick={() => setOpen(false)}
+                    className="font-body text-sm py-2 px-3 rounded-md text-foreground hover:bg-muted transition-colors flex items-center gap-2"
+                  >
+                    <KeyRound className="h-4 w-4" /> Change Password
                   </Link>
                   {isAdmin && (
                     <Link

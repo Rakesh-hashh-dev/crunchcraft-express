@@ -24,6 +24,7 @@ import RecipeDetail from "./pages/RecipeDetail";
 import OrderStatus from "./pages/OrderStatus";
 import AdminOrderTracker from "./pages/AdminOrderTracker";
 import AccountOrders from "./pages/AccountOrders";
+import AccountSecurity from "./pages/AccountSecurity";
 import ResetPassword from "./pages/ResetPassword";
 
 const queryClient = new QueryClient();
@@ -47,6 +48,7 @@ const AnimatedRoutes = () => {
         <Route path="/recipes/:slug" element={<RecipeDetail />} />
         <Route path="/order/:id" element={<OrderStatus />} />
         <Route path="/account/orders" element={<AccountOrders />} />
+        <Route path="/account/security" element={<AccountSecurity />} />
         <Route path="/admin/orders/:id" element={<AdminOrderTracker />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
